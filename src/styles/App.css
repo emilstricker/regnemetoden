@@ -1,0 +1,75 @@
+:root {
+  --primary-color: #4A90E2;
+  --secondary-color: #6c757d;
+  --background-color: #F5F7FA;
+  --text-color: #2C3E50;
+  --border-radius: 12px;
+  --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.app {
+  min-height: 100vh;
+  background-color: var(--background-color);
+}
+
+.container {
+  max-width: 600px !important;
+  padding: 1rem;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+.feature-item {
+  text-align: center;
+  padding: 1rem;
+  background: white;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+}
+
+.feature-item .icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.setup-form {
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.notification {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.box {
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  background: white;
+  margin-bottom: 1.5rem;
+}
+
+.card {
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  height: 100%;
+}
+
+.card-content {
+  padding: 1.5rem;
+}
+
+.columns {
+  margin: -0.75rem !important;
+}
+
+.column {
+  padding: 0.75rem !important;
+}
