@@ -4,20 +4,27 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { cn } from '@/lib/utils';
 
 interface FoodEntryListProps {
   entries: { amount: number; time: string }[];
   onRemove: (index: number) => void;
+  className?: string;
+  compact?: boolean;
 }
 
-export function FoodEntryList({ entries, onRemove }: FoodEntryListProps) {
+export function FoodEntryList({ entries, onRemove, className, compact = false }: FoodEntryListProps) {
   const total = entries.reduce((sum, entry) => sum + entry.amount, 0);
 
   return (
     <motion.div 
       whileHover={{ scale: 1.03, boxShadow: "0 8px 30px rgba(0,0,0,0.12)" }} 
       transition={{ duration: 0.2 }}
-      className="h-[454px]"
+      className={cn(
+        compact ? "h-[400px]" : "h-[510px]",
+        "min-h-[454px]",
+        className
+      )}
     >
       <Card className="h-full">
         <CardContent className="pt-6 h-full flex flex-col">
@@ -30,7 +37,10 @@ export function FoodEntryList({ entries, onRemove }: FoodEntryListProps) {
                 {total}g
               </span>
             </div>
-            <ScrollArea className="h-[334px] pr-4">
+            <ScrollArea className={cn(
+              "pr-4",
+              compact ? "h-[320px]" : "h-[calc(100%-5rem)]"
+            )}>
               <AnimatePresence mode="popLayout">
                 {entries
                   .sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
