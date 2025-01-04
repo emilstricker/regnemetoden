@@ -64,7 +64,7 @@ export function FoodEntryList({ entries, onRemove, compact, className }: FoodEnt
             height: compact ? `${dynamicHeight - headerHeight}px` : undefined 
           }}>
             <div className="space-y-2">
-              <AnimatePresence initial={false}>
+              <AnimatePresence mode="wait" initial={false}>
                 {entries
                   .sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
                   .map((entry, index) => (
@@ -73,10 +73,13 @@ export function FoodEntryList({ entries, onRemove, compact, className }: FoodEnt
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: "auto" }}
                       exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.2 }}
-                      whileHover={{ scale: 1.02, backgroundColor: "rgba(255, 255, 255, 0.8)" }}
+                      transition={{ 
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 30
+                      }}
                     >
-                      <div className="flex items-center justify-between p-3 rounded-lg bg-white/50 shadow-sm cursor-pointer">
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
                         <div className="flex items-center gap-3">
                           <span className={entry.amount > 0 ? "text-green-600" : "text-red-600"}>
                             {entry.amount > 0 ? "+" : "−"}{Math.abs(entry.amount)}g

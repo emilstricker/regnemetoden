@@ -215,24 +215,26 @@ export function DailyTracking({
         </div>
 
         <div className="block lg:hidden">
-          {todayEntry?.foodEntries && todayEntry.foodEntries.length > 0 && (
-            <motion.div 
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ 
-                type: "spring",
-                stiffness: 300,
-                damping: 30
-              }}
-            >
-              <FoodEntryList
-                entries={todayEntry.foodEntries}
-                onRemove={onRemoveFoodEntry}
-                compact
-              />
-            </motion.div>
-          )}
+          <AnimatePresence mode="wait">
+            {todayEntry?.foodEntries && todayEntry.foodEntries.length > 0 && (
+              <motion.div 
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ 
+                  type: "spring",
+                  stiffness: 300,
+                  damping: 30
+                }}
+              >
+                <FoodEntryList
+                  entries={todayEntry.foodEntries}
+                  onRemove={onRemoveFoodEntry}
+                  compact
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -256,7 +258,7 @@ export function DailyTracking({
         </div>
       </motion.div>
 
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {todayEntry?.foodEntries && todayEntry.foodEntries.length > 0 && (
           <motion.div 
             className="col-span-2 hidden lg:block"
