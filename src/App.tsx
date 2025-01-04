@@ -5,7 +5,6 @@ import { format, addDays, startOfDay } from 'date-fns';
 import { da } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import './styles/globals.css';
-import { TipDisplay } from './components/TipDisplay';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   WeightLossGoal, 
@@ -272,7 +271,6 @@ function App() {
               currentDate={currentDate}
               className="order-1 lg:order-none"
             />
-            <TipDisplay />
           </motion.div>
         </AnimatePresence>
       </main>

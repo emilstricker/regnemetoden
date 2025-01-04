@@ -45,26 +45,26 @@ export const TipDisplay = ({ language = 'da', category }: TipDisplayProps) => {
       >
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-2">
-              <LightbulbIcon className="h-4 w-4" />
-              Dagens tip
-            </CardTitle>
+            <div className="flex justify-between items-center">
+              <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+                <LightbulbIcon className="h-4 w-4" />
+                Dagens tip
+              </CardTitle>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleNextTip}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                Næste tip
+                <ArrowRightIcon className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="space-y-2">
               <h3 className="text-lg font-medium">{tip.title}</h3>
               <p className="text-muted-foreground">{tip.description}</p>
-              <div className="flex justify-end">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleNextTip}
-                  className="text-muted-foreground hover:text-foreground"
-                >
-                  Næste tip
-                  <ArrowRightIcon className="ml-2 h-4 w-4" />
-                </Button>
-              </div>
             </div>
           </CardContent>
         </Card>

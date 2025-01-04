@@ -11,11 +11,12 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from '@/lib/utils';
-import { EditWeight } from './EditWeight';
 import { MorningWeight } from './MorningWeight';
 import { DailyGoal } from './DailyGoal';
 import { DailyDeficit } from './DailyDeficit';
 import { FoodEntryList } from './FoodEntryList';
+import { TipDisplay } from './TipDisplay';
+import { WeightInput } from './WeightInput';
 
 interface DailyTrackingProps {
   userData: {
@@ -45,130 +46,110 @@ export function DailyTracking({
   className,
   currentDate
 }: DailyTrackingProps) {
-  const [isEditingWeight, setIsEditingWeight] = useState(!todayEntry?.weight);
   const [quickAddBuffer, setQuickAddBuffer] = useState<number[]>([]);
   const [quickAddTotal, setQuickAddTotal] = useState(0);
   const [manualInput, setManualInput] = useState("");
-
-  const QUICK_ADD_TIMEOUT = 2000; // 2 seconds
-
-  // Calculate days since start
-  const startDate = new Date(userData.startDate || new Date().toISOString());
-  const daysSinceStart = Math.floor((currentDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-  const dailyWeightLoss = (userData.startWeight - userData.targetWeight) / userData.numberOfDays;
-  const todayTargetWeight = userData.startWeight - (dailyWeightLoss * daysSinceStart);
-  const totalConsumed = todayEntry?.foodEntries?.reduce((sum, entry) => sum + entry.amount, 0) || 0;
-  const foodAllowanceGrams = todayEntry?.weight ? Math.round((todayTargetWeight - todayEntry.weight) * 1000) : 0;
-
-  useEffect(() => {
-    setIsEditingWeight(!todayEntry?.weight);
-  }, [todayEntry?.weight]);
-
-  useEffect(() => {
-    if (todayEntry?.weight && todayTargetWeight) {
-      setQuickAddTotal(0);
-      setQuickAddBuffer([]);
-    }
-  }, [todayEntry?.weight, todayTargetWeight]);
-
-  useEffect(() => {
-    const total = quickAddBuffer.reduce((sum, num) => sum + num, 0);
-    setQuickAddTotal(total);
-  }, [quickAddBuffer]);
-
-  const submitQuickAdd = useCallback(() => {
-    if (quickAddTotal > 0) {
-      onAddFoodEntry(quickAddTotal);
-      setQuickAddBuffer([]);
-      setQuickAddTotal(0);
-    }
-  }, [quickAddTotal, onAddFoodEntry]);
+  const manualValue = parseFloat(manualInput);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      submitQuickAdd();
-    }, QUICK_ADD_TIMEOUT);
+      if (quickAddBuffer.length > 0) {
+        const total = quickAddBuffer.reduce((a, b) => a + b, 0);
+        onAddFoodEntry(total);
+        setQuickAddBuffer([]);
+        setQuickAddTotal(0);
+      }
+    }, 2000);
 
     return () => clearTimeout(timer);
-  }, [quickAddBuffer, submitQuickAdd]);
+  }, [quickAddBuffer, onAddFoodEntry]);
+
+  const handleQuickAdd = useCallback((amount: number) => {
+    setQuickAddBuffer(prev => [...prev, amount]);
+    setQuickAddTotal(prev => prev + amount);
+  }, []);
 
   useEffect(() => {
-    const handleKeyPress = (event: KeyboardEvent) => {
-      if (!todayEntry?.weight) return; 
-      if (event.target instanceof HTMLInputElement) return;
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (document.activeElement?.tagName === 'INPUT') return;
       
-      switch (event.key) {
-        case '1':
-          handleQuickAdd(1);
-          break;
-        case '2':
-          handleQuickAdd(5);
-          break;
-        case '3':
-          handleQuickAdd(10);
-          break;
-        case '4':
-          handleQuickAdd(50);
-          break;
+      const amount = {
+        '1': 1,
+        '2': 5,
+        '3': 10,
+        '4': 50
+      }[e.key];
+
+      if (amount) {
+        handleQuickAdd(amount);
       }
     };
 
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [todayEntry?.weight]);
+  }, [handleQuickAdd]);
 
-  const handleQuickAdd = (amount: number) => {
-    setQuickAddBuffer(prev => [...prev, amount]);
-  };
+  // Calculate daily target weight and food allowance
+  const daysSinceStart = Math.floor(
+    (currentDate.getTime() - new Date(userData.startDate).getTime()) / (1000 * 60 * 60 * 24)
+  );
+  const totalWeightLoss = userData.startWeight - userData.targetWeight;
+  const dailyWeightLoss = totalWeightLoss / userData.numberOfDays;
+  const todayTargetWeight = userData.startWeight - (dailyWeightLoss * daysSinceStart);
+  
+  // Calculate food allowance based on weight difference (1kg = 1000g)
+  const weightDifference = todayEntry?.weight ? todayTargetWeight - todayEntry.weight : 0;
+  const foodAllowanceGrams = Math.max(0, Math.round(weightDifference * 1000));
+  const totalConsumed = todayEntry?.foodEntries.reduce((sum, entry) => sum + entry.amount, 0) || 0;
 
-  const manualValue = parseFloat(manualInput);
+  if (!todayEntry?.weight) {
+    return (
+      <div className={cn("min-h-[80vh] flex items-center justify-center p-6", className)}>
+        <WeightInput onSubmit={onAddWeightEntry} />
+      </div>
+    );
+  }
 
   return (
-    <div className={cn("grid grid-cols-1 lg:grid-cols-3 gap-6", className)}>
-      <div className={cn(
-        "space-y-6",
-        todayEntry?.foodEntries && todayEntry.foodEntries.length > 0 
-          ? "lg:col-span-2" 
-          : "lg:col-span-3"
-      )}>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <MorningWeight
-            weight={todayEntry?.weight}
-            onEditWeight={() => setIsEditingWeight(true)}
-          />
-          <DailyDeficit
-            startWeight={userData.startWeight}
-            targetWeight={userData.targetWeight}
-            numberOfDays={userData.numberOfDays}
-          />
-        </div>
-
-        {(!todayEntry?.weight || isEditingWeight) && (
-          <EditWeight
-            onSubmit={(weight) => {
-              onAddWeightEntry(weight);
-              setIsEditingWeight(false);
-            }}
-            onCancel={() => setIsEditingWeight(false)}
-            initialWeight={todayEntry?.weight}
-          />
+    <div className={cn("grid grid-cols-6 gap-6", className)}>
+      <motion.div 
+        className={cn(
+          "space-y-6 col-span-4",
+          !todayEntry?.foodEntries?.length ? "col-start-2" : "col-start-1"
         )}
+        layout
+        transition={{ 
+          type: "spring",
+          stiffness: 300,
+          damping: 30
+        }}
+      >
+        <TipDisplay />
 
-        <DailyGoal
-          targetWeight={todayTargetWeight}
-          consumedGrams={totalConsumed}
-          allowanceGrams={foodAllowanceGrams}
-        />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:auto-rows-fr">
+          <DailyGoal
+            targetWeight={todayTargetWeight}
+            consumedGrams={totalConsumed}
+            allowanceGrams={foodAllowanceGrams}
+            className="order-1 md:order-none"
+          />
 
-        <motion.div 
-          whileHover={{ scale: 1.03, boxShadow: "0 8px 30px rgba(0,0,0,0.12)" }} 
-          transition={{ duration: 0.2 }}
-        >
-          <Card>
-            <CardContent className="pt-6">
-              <div className="space-y-4">
-                <Label className="text-sm uppercase tracking-wide text-gray-500">Tilføj gram</Label>
-                <div className="flex flex-col gap-4 md:flex-row">
+          <motion.div 
+            whileHover={{ scale: 1.03, boxShadow: "0 8px 30px rgba(0,0,0,0.12)" }} 
+            transition={{ duration: 0.2 }}
+            className="h-full order-2 md:order-none"
+          >
+            <Card className="h-full">
+              <CardContent className="pt-6 h-full flex flex-col">
+                <div className="space-y-4 flex-1">
+                  <div className="flex justify-between items-center">
+                    <Label className="text-sm uppercase tracking-wide text-gray-500">Tilføj gram</Label>
+                    {quickAddTotal > 0 && (
+                      <span className="text-sm text-muted-foreground">
+                        Buffer: {quickAddTotal}g
+                      </span>
+                    )}
+                  </div>
                   <div className="grid grid-cols-4 gap-2">
                     <TooltipProvider>
                       {[
@@ -204,7 +185,7 @@ export function DailyTracking({
                         setManualInput("");
                       }
                     }}
-                    className="flex items-center gap-2 md:flex-[2]"
+                    className="flex items-center gap-2"
                   >
                     <Input
                       name="amount"
@@ -227,21 +208,59 @@ export function DailyTracking({
                     </Button>
                   </form>
                 </div>
-                {quickAddTotal > 0 && (
-                  <div className="text-center text-sm text-muted-foreground">
-                    Buffer: {quickAddTotal}g
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
 
-      {todayEntry?.foodEntries && todayEntry.foodEntries.length > 0 && (
-        <AnimatePresence>
+        <div className="block lg:hidden order-3">
+          {todayEntry?.foodEntries && todayEntry.foodEntries.length > 0 && (
+            <AnimatePresence>
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ 
+                  type: "spring",
+                  stiffness: 300,
+                  damping: 30
+                }}
+              >
+                <FoodEntryList
+                  entries={todayEntry.foodEntries}
+                  onRemove={onRemoveFoodEntry}
+                  compact
+                />
+              </motion.div>
+            </AnimatePresence>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 order-4 md:order-none">
+          <MorningWeight
+            weight={todayEntry?.weight}
+            onEditWeight={() => {
+              const newWeight = window.prompt("Indtast ny vægt (kg)", todayEntry?.weight?.toString() || "");
+              if (newWeight !== null) {
+                const weight = parseFloat(newWeight);
+                if (!isNaN(weight)) {
+                  onAddWeightEntry(weight);
+                }
+              }
+            }}
+          />
+          <DailyDeficit
+            startWeight={userData.startWeight}
+            targetWeight={userData.targetWeight}
+            numberOfDays={userData.numberOfDays}
+          />
+        </div>
+      </motion.div>
+
+      <AnimatePresence>
+        {todayEntry?.foodEntries && todayEntry.foodEntries.length > 0 && (
           <motion.div 
-            className="lg:col-span-1"
+            className="col-span-2 hidden lg:block"
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 50 }}
@@ -251,13 +270,15 @@ export function DailyTracking({
               damping: 30
             }}
           >
-            <FoodEntryList 
-              entries={todayEntry.foodEntries} 
-              onRemove={onRemoveFoodEntry}
-            />
+            <div className="sticky top-6">
+              <FoodEntryList
+                entries={todayEntry.foodEntries}
+                onRemove={onRemoveFoodEntry}
+              />
+            </div>
           </motion.div>
-        </AnimatePresence>
-      )}
+        )}
+      </AnimatePresence>
     </div>
   );
 }
