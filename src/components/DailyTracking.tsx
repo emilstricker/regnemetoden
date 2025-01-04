@@ -111,11 +111,12 @@ export function DailyTracking({
   }
 
   return (
-    <div className={cn("grid grid-cols-6 gap-6", className)}>
+    <div className={cn("grid grid-cols-1 lg:grid-cols-6 gap-6", className)}>
       <motion.div 
         className={cn(
-          "space-y-6 col-span-4",
-          !todayEntry?.foodEntries?.length ? "col-start-2" : "col-start-1"
+          "space-y-6",
+          "lg:col-span-4",
+          !todayEntry?.foodEntries?.length ? "lg:col-start-2" : "lg:col-start-1"
         )}
         layout
         transition={{ 
@@ -213,30 +214,28 @@ export function DailyTracking({
           </motion.div>
         </div>
 
-        <div className="block lg:hidden order-3">
+        <div className="block lg:hidden">
           {todayEntry?.foodEntries && todayEntry.foodEntries.length > 0 && (
-            <AnimatePresence>
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ 
-                  type: "spring",
-                  stiffness: 300,
-                  damping: 30
-                }}
-              >
-                <FoodEntryList
-                  entries={todayEntry.foodEntries}
-                  onRemove={onRemoveFoodEntry}
-                  compact
-                />
-              </motion.div>
-            </AnimatePresence>
+            <motion.div 
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ 
+                type: "spring",
+                stiffness: 300,
+                damping: 30
+              }}
+            >
+              <FoodEntryList
+                entries={todayEntry.foodEntries}
+                onRemove={onRemoveFoodEntry}
+                compact
+              />
+            </motion.div>
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 order-4 md:order-none">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <MorningWeight
             weight={todayEntry?.weight}
             onEditWeight={() => {

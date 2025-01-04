@@ -1,47 +1,70 @@
-import { format } from 'date-fns';
-import { da } from 'date-fns/locale';
 import { Card, CardContent } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
+import { da } from 'date-fns/locale';
 
-interface FoodEntryListProps {
-  entries: { amount: number; time: string }[];
-  onRemove: (index: number) => void;
-  className?: string;
-  compact?: boolean;
+interface FoodEntry {
+  amount: number;
+  time: string;
 }
 
-export function FoodEntryList({ entries, onRemove, className, compact = false }: FoodEntryListProps) {
+interface FoodEntryListProps {
+  entries: FoodEntry[];
+  onRemove: (index: number) => void;
+  compact?: boolean;
+  className?: string;
+}
+
+export function FoodEntryList({ entries, onRemove, compact, className }: FoodEntryListProps) {
+  // Calculate dynamic height based on number of entries (for mobile)
+  const headerHeight = 56; // Height of the header including margins
+  const entryHeight = 72; // Height of a single entry
+  const entryMargin = 8; // Margin between entries
+  const totalEntryHeight = entries.length * (entryHeight + entryMargin);
+  const maxMobileHeight = 400;
+  const minHeight = 140; // Minimum height for the card
+  
+  const dynamicHeight = Math.max(
+    minHeight,
+    Math.min(headerHeight + totalEntryHeight, maxMobileHeight)
+  );
+  
   const total = entries.reduce((sum, entry) => sum + entry.amount, 0);
 
   return (
     <motion.div 
       whileHover={{ scale: 1.03, boxShadow: "0 8px 30px rgba(0,0,0,0.12)" }} 
       transition={{ duration: 0.2 }}
-      className={cn(
-        compact ? "h-[400px]" : "h-[510px]",
-        "min-h-[454px]",
-        className
-      )}
+      className={className}
+      layout
     >
-      <Card className="h-full">
-        <CardContent className="pt-6 h-full flex flex-col">
-          <div className="space-y-2 flex-1 min-h-0">
+      <Card>
+        <CardContent className={cn(
+          "pt-6 flex flex-col",
+          !compact && "h-[510px]"
+        )}>
+          <div className="flex justify-between items-center mb-4">
             <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
               Dagens Indtag
             </h2>
-            <div className="flex justify-between items-center">
-              <span className="text-4xl font-bold">
-                {total}g
-              </span>
-            </div>
-            <ScrollArea className={cn(
-              "pr-4",
-              compact ? "h-[320px]" : "h-[calc(100%-5rem)]"
-            )}>
-              <AnimatePresence mode="popLayout">
+            <span className="text-4xl font-bold">
+              {total}g
+            </span>
+          </div>
+
+          <ScrollArea className={cn(
+            "pr-4",
+            "transition-[height] duration-300 ease-in-out",
+            !compact && "h-[calc(100%-5rem)]",
+            entries.length <= 4 && "lg:!h-auto"
+          )} style={{ 
+            height: compact ? `${dynamicHeight - headerHeight}px` : undefined 
+          }}>
+            <div className="space-y-2">
+              <AnimatePresence initial={false}>
                 {entries
                   .sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
                   .map((entry, index) => (
@@ -52,29 +75,30 @@ export function FoodEntryList({ entries, onRemove, className, compact = false }:
                       exit={{ opacity: 0, height: 0 }}
                       transition={{ duration: 0.2 }}
                       whileHover={{ scale: 1.02, backgroundColor: "rgba(255, 255, 255, 0.8)" }}
-                      className="flex items-center justify-between p-2 rounded-lg bg-white/50 shadow-sm cursor-pointer mb-2"
                     >
-                      <div className="flex items-center gap-3">
-                        <span className={entry.amount > 0 ? "text-green-600" : "text-red-600"}>
-                          {entry.amount > 0 ? "+" : "−"}{Math.abs(entry.amount)}g
-                        </span>
-                        <span className="text-sm text-muted-foreground">
-                          {format(new Date(entry.time), "HH:mm", { locale: da })}
-                        </span>
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-white/50 shadow-sm cursor-pointer">
+                        <div className="flex items-center gap-3">
+                          <span className={entry.amount > 0 ? "text-green-600" : "text-red-600"}>
+                            {entry.amount > 0 ? "+" : "−"}{Math.abs(entry.amount)}g
+                          </span>
+                          <span className="text-sm text-muted-foreground">
+                            {format(new Date(entry.time), "HH:mm", { locale: da })}
+                          </span>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onRemove(index)}
+                          className="hover:text-red-600"
+                        >
+                          ×
+                        </Button>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onRemove(index)}
-                        className="hover:text-red-600"
-                      >
-                        ×
-                      </Button>
                     </motion.div>
                   ))}
               </AnimatePresence>
-            </ScrollArea>
-          </div>
+            </div>
+          </ScrollArea>
         </CardContent>
       </Card>
     </motion.div>
