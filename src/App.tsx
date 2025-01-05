@@ -6,6 +6,8 @@ import { da } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import './styles/globals.css';
 import { motion, AnimatePresence } from 'framer-motion';
+import { LoadingSpinner } from './components/LoadingSpinner';
+import { DayZeroGuide } from './components/DayZeroGuide';
 import { 
   WeightLossGoal, 
   DayEntry,
@@ -13,16 +15,12 @@ import {
   saveDayEntry,
   signOutUser,
   onWeightLossGoalChange,
-  onDayEntriesChange
+  onDayEntriesChange,
+  savePendingGoal,
+  onPendingGoalChange,
+  clearUserSetupData
 } from './lib/firebase';
-import {
-  collection,
-  doc,
-  getDocs,
-  setDoc,
-  writeBatch,
-  Timestamp,
-} from 'firebase/firestore';
+import { collection, doc, getDocs, setDoc, writeBatch, Timestamp, } from 'firebase/firestore';
 import { db } from './lib/firebase';
 import { Auth } from './components/Auth';
 import { useAuth } from './contexts/AuthContext';
@@ -33,30 +31,51 @@ const isDevelopment = process.env.NODE_ENV === 'development';
 function App() {
   const { user, isLoading: isAuthLoading } = useAuth();
   const [weightLossGoal, setWeightLossGoal] = useState<WeightLossGoal | null>(null);
+  const [pendingGoal, setPendingGoal] = useState<WeightLossGoal | null>(null);
   const [dayEntries, setDayEntries] = useState<DayEntry[]>([]);
   const [dateOffset, setDateOffset] = useState(0);
   const [isDevHeaderExpanded] = useState(true);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isDataInitialized, setIsDataInitialized] = useState(false);
+  const [showDayZeroGuide, setShowDayZeroGuide] = useState(false);
 
   useEffect(() => {
     if (!user) {
-      setIsLoading(false);
+      setIsDataInitialized(true);
       return;
     }
 
+    let goalLoaded = false;
+    let entriesLoaded = false;
+    let pendingLoaded = false;
+
     const unsubscribeGoal = onWeightLossGoalChange(user.uid, (goal) => {
       setWeightLossGoal(goal);
-      setIsLoading(false);
+      goalLoaded = true;
+      if (goalLoaded && entriesLoaded && pendingLoaded) {
+        setIsDataInitialized(true);
+      }
     });
 
     const unsubscribeEntries = onDayEntriesChange(user.uid, (entries) => {
       setDayEntries(entries);
-      setIsLoading(false);
+      entriesLoaded = true;
+      if (goalLoaded && entriesLoaded && pendingLoaded) {
+        setIsDataInitialized(true);
+      }
+    });
+
+    const unsubscribePending = onPendingGoalChange(user.uid, (pending) => {
+      setPendingGoal(pending);
+      pendingLoaded = true;
+      if (goalLoaded && entriesLoaded && pendingLoaded) {
+        setIsDataInitialized(true);
+      }
     });
 
     return () => {
       unsubscribeGoal();
       unsubscribeEntries();
+      unsubscribePending();
     };
   }, [user]);
 
@@ -116,6 +135,63 @@ function App() {
     }
   };
 
+  const handleSetupSubmit = async (data: {
+    startWeight: number;
+    targetWeight: number;
+    numberOfDays: number;
+    startDate: string;
+    weightingTime: 'tonight' | 'yesterday';
+  }) => {
+    if (!user) return;
+
+    try {
+      const goal: WeightLossGoal = {
+        startWeight: data.startWeight,
+        targetWeight: data.targetWeight,
+        numberOfDays: data.numberOfDays,
+        startDate: data.startDate,
+        weightingTime: data.weightingTime
+      };
+
+      if (data.weightingTime === 'tonight') {
+        await savePendingGoal(user.uid, goal);
+      } else {
+        await saveWeightLossGoal(user.uid, goal);
+      }
+    } catch (error) {
+      console.error('Error saving goal:', error);
+    }
+  };
+
+  const handleDayZeroComplete = async () => {
+    if (!user || !pendingGoal) return;
+    try {
+      // Save the goal but don't clear the pending goal yet
+      // The user needs to come back tomorrow to start
+      await saveWeightLossGoal(user.uid, pendingGoal);
+    } catch (error) {
+      console.error('Error saving goal after day zero:', error);
+    }
+  };
+
+  const handleDayZeroBack = async () => {
+    if (!user) return;
+    try {
+      // Clear all setup data when going back
+      await clearUserSetupData(user.uid);
+    } catch (error) {
+      console.error('Error clearing setup data:', error);
+    }
+  };
+
+  const handleDayZeroUpdatePlan = async (actualWeight: number) => {
+    if (!pendingGoal) return;
+    setPendingGoal({
+      ...pendingGoal,
+      startWeight: actualWeight
+    });
+  };
+
   const handleSignOut = async () => {
     try {
       await signOutUser();
@@ -173,21 +249,29 @@ function App() {
     }
   };
 
-  if (isAuthLoading || isLoading) {
-    return (
-      <div className="min-h-screen bg-[url('/src/styles/background.jpg')] bg-cover bg-center bg-fixed font-sans antialiased">
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-        </div>
-      </div>
-    );
+  if (!isDataInitialized || isAuthLoading) {
+    return <LoadingSpinner />;
   }
 
   if (!user) {
     return (
+      <div className="container mx-auto px-4 py-8">
+        <Auth />
+      </div>
+    );
+  }
+
+  // Show day zero guide if there's a pending goal
+  if (pendingGoal?.weightingTime === 'tonight') {
+    return (
       <div className="min-h-screen bg-[url('/src/styles/background.jpg')] bg-cover bg-center bg-fixed font-sans antialiased">
         <div className="min-h-screen flex items-center justify-center p-4">
-          <Auth />
+          <DayZeroGuide 
+            onComplete={handleDayZeroComplete}
+            onBack={handleDayZeroBack}
+            estimatedWeight={pendingGoal.startWeight}
+            isWeightSaved={pendingGoal.isWeightSaved}
+          />
         </div>
       </div>
     );
@@ -197,7 +281,7 @@ function App() {
     return (
       <div className="min-h-screen bg-[url('/src/styles/background.jpg')] bg-cover bg-center bg-fixed font-sans antialiased">
         <div className="min-h-screen flex items-center justify-center p-4">
-          <SetupForm onSubmit={handleGoalUpdate} />
+          <SetupForm onSubmit={handleSetupSubmit} />
         </div>
       </div>
     );
