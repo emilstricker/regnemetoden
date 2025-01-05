@@ -10,20 +10,21 @@ import { CheckCircle2 } from "lucide-react"
 
 interface DayZeroGuideProps {
   onComplete: () => void;
-  onUpdatePlan: (weight: number) => void;
+  onBack: () => void;
   estimatedWeight: number;
+  isWeightSaved?: boolean;
 }
 
 export function DayZeroGuide({ 
   onComplete, 
-  onUpdatePlan,
-  estimatedWeight
+  onBack,
+  estimatedWeight,
+  isWeightSaved: initialWeightSaved = false
 }: DayZeroGuideProps) {
   const [weight, setWeight] = useState(estimatedWeight.toString());
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isWeightSubmitted, setIsWeightSubmitted] = useState(false);
-  const [submittedWeight, setSubmittedWeight] = useState<number | null>(null);
+  const [isWeightSaved, setIsWeightSaved] = useState(initialWeightSaved);
   const { user } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -48,165 +49,142 @@ export function DayZeroGuide({
         return;
       }
 
-      // Save the initial weight entry
-      const today = new Date();
-      const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
-
+      // Save the weight
       await saveDayEntry(user.uid, {
-        date: startOfToday,
+        date: new Date().toISOString().split('T')[0],
         weight: weightValue,
         foodEntries: []
       });
 
-      setSubmittedWeight(weightValue);
-      setIsWeightSubmitted(true);
-    } catch (err) {
-      console.error('Error saving weight:', err);
-      setError('Der opstod en fejl ved gemning af din vægt');
+      // Update the pending goal to mark weight as saved
+      await updatePendingGoalWeightSaved(user.uid);
+
+      setIsWeightSaved(true);
+    } catch (error) {
+      console.error('Error saving weight:', error);
+      setError('Der skete en fejl. Prøv igen.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (isWeightSubmitted && submittedWeight !== null) {
-    const weightDifference = Math.abs(submittedWeight - estimatedWeight);
-    const shouldSuggestUpdate = weightDifference > 0.5;
-
+  if (isWeightSaved) {
     return (
-      <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <Card className="w-full max-w-2xl mx-auto">
-              <CardHeader className="pb-4 space-y-4">
-                <CardTitle className="text-3xl font-bold text-center">
-                  <div className="flex justify-center mb-4">
-                    <CheckCircle2 className="h-12 w-12 text-green-500" />
-                  </div>
-                  Tak for din vægt!
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-8">
-                <div className="space-y-6">
-                  <div className="text-center space-y-2">
-                    <p className="text-xl font-medium">
-                      Din vægt er blevet gemt: {submittedWeight} kg
-                    </p>
-                    {shouldSuggestUpdate ? (
-                      <div className="space-y-4">
-                        <p className="text-muted-foreground">
-                          Din faktiske vægt er {weightDifference > 0 ? 'højere' : 'lavere'} end estimeret.
-                          Vil du opdatere din plan med den nye vægt?
-                        </p>
-                        <div className="flex justify-center gap-4">
-                          <Button 
-                            variant="outline"
-                            onClick={() => onComplete()}
-                          >
-                            Nej tak, fortsæt med nuværende plan
-                          </Button>
-                          <Button
-                            onClick={() => onUpdatePlan(submittedWeight)}
-                          >
-                            Ja, opdater min plan
-                          </Button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        <p className="text-muted-foreground">
-                          Vi ses i morgen tidlig, hvor du skal veje dig igen før morgenmad.
-                          <br /><br />
-                          Du kan lukke denne side nu.
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </div>
-      </div>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="w-full max-w-2xl mx-auto space-y-6"
+      >
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-2xl text-center">Vægt gemt!</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="text-center space-y-4">
+              <div className="flex justify-center mb-4">
+                <CheckCircle2 className="h-12 w-12 text-green-500" />
+              </div>
+              <p className="text-lg">
+                Din vægt er blevet gemt. Kom tilbage i morgen for at starte din rejse!
+              </p>
+              <p className="text-muted-foreground">
+                Du vil kunne se dit dashboard og tracke din fremgang fra i morgen af.
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-4">
+              <Button 
+                variant="outline" 
+                onClick={onBack}
+                className="w-full"
+              >
+                Gå tilbage og ret min plan
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <Card className="w-full max-w-2xl mx-auto">
-            <CardHeader className="pb-4 space-y-4">
-              <CardTitle className="text-3xl font-bold text-center">Din Plan for I Dag</CardTitle>
-              <p className="text-muted-foreground text-center">
-                Her er hvad du skal gøre i dag (Dag 0)
-              </p>
-            </CardHeader>
-            <CardContent className="space-y-8">
-              <div className="space-y-6">
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Din estimerede vægt</Label>
-                    <div className="text-2xl font-semibold">{estimatedWeight} kg</div>
-                  </div>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="w-full max-w-2xl mx-auto space-y-6"
+    >
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-2xl text-center">Din første vejning</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="text-center space-y-4">
+            <p className="text-lg">
+              Du har valgt at starte din rejse i aften.
+            </p>
+            <p className="text-muted-foreground">
+              Din estimerede startvægt er <span className="font-semibold">{estimatedWeight} kg</span>
+            </p>
+          </div>
 
-                  <form onSubmit={handleSubmit} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="weight">Din faktiske vægt</Label>
-                      <Input
-                        id="weight"
-                        type="number"
-                        step="0.1"
-                        value={weight}
-                        onChange={(e) => setWeight(e.target.value)}
-                        placeholder="F.eks. 85.5"
-                        className="text-lg"
-                        required
-                      />
-                      {error && <p className="text-sm text-red-500">{error}</p>}
-                    </div>
+          <div className="space-y-6 pt-4">
+            <div className="space-y-2">
+              <h3 className="font-semibold text-lg">Sådan gør du:</h3>
+              <ul className="list-disc list-inside space-y-2 text-muted-foreground">
+                <li>Vej dig selv lige før sengetid</li>
+                <li>Efter dit sidste måltid og toiletbesøg</li>
+                <li>Brug den samme badevægt hver gang</li>
+                <li>Vej dig på samme tidspunkt hver aften</li>
+              </ul>
+            </div>
 
-                    <div className="space-y-2">
-                      <Button 
-                        type="submit" 
-                        className="w-full" 
-                        disabled={isSubmitting}
-                      >
-                        {isSubmitting ? (
-                          <div className="flex items-center space-x-2">
-                            <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
-                            <span>Gemmer...</span>
-                          </div>
-                        ) : (
-                          'Gem min vægt'
-                        )}
-                      </Button>
-                    </div>
-                  </form>
+            <div className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Din faktiske vægt</Label>
+                  <Input
+                    id="weight"
+                    type="number"
+                    step="0.1"
+                    value={weight}
+                    onChange={(e) => setWeight(e.target.value)}
+                    placeholder="F.eks. 85.5"
+                    className="text-lg"
+                    required
+                  />
+                  {error && <p className="text-sm text-red-500">{error}</p>}
                 </div>
 
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <h2 className="text-lg font-semibold">Tips til nøjagtig vejning:</h2>
-                    <ul className="list-disc list-inside space-y-2 text-sm text-muted-foreground">
-                      <li>Vej dig selv lige før sengetid</li>
-                      <li>Efter dit sidste måltid og toiletbesøg</li>
-                      <li>Brug den samme badevægt hver gang du vejer dig</li>
-                    </ul>
-                  </div>
+                <div className="flex flex-col gap-4">
+                  <Button 
+                    type="submit" 
+                    className="w-full" 
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <div className="flex items-center space-x-2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
+                        <span>Gemmer...</span>
+                      </div>
+                    ) : (
+                      'Gem min vægt'
+                    )}
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={onBack}
+                    className="w-full"
+                  >
+                    Gå tilbage og ret min plan
+                  </Button>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
-    </div>
+              </form>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 }
