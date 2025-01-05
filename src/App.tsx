@@ -243,7 +243,7 @@ function App() {
       <div className="min-h-screen bg-[url('/src/styles/background.jpg')] bg-cover bg-center bg-fixed font-sans antialiased">
         <Header 
           onSignOut={handleSignOut}
-          onResetPlan={() => {}}
+          onResetPlan={handleDayZeroBack}
         />
         {isDevelopment && isDevHeaderExpanded && (
           <motion.div

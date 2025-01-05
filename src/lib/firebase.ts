@@ -223,7 +223,8 @@ export async function savePendingGoal(uid: string, goal: WeightLossGoal | null):
     // Update the user document with the pending goal
     await setDoc(userRef, {
       ...userData,
-      pendingGoal: goal ? {
+      weightLossGoal: null, // Clear any existing goal
+      pendingGoal: goal ? { 
         ...goal,
         updatedAt: Timestamp.now()
       } : null

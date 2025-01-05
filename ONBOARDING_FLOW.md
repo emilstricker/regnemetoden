@@ -36,6 +36,7 @@ The default selection is based on time of day:
 3. **After Weight Entry**
    - Success message: "Din vægt er blevet gemt. Kom tilbage i morgen for at starte din rejse!"
    - Must wait until next day to start tracking
+   - If the user navigates away from the app, and return later on day zero, they land back on this page.
 
 4. **Next Day (Day One)**
    - Dashboard shows: "Morgenvægt, Indtast din vægt for at komme i gang"
