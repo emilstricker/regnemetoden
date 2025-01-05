@@ -9,7 +9,8 @@ import {
   Timestamp,
   onSnapshot,
   query,
-  orderBy
+  orderBy,
+  writeBatch
 } from 'firebase/firestore';
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, User } from 'firebase/auth';
 import { startOfDay } from 'date-fns';
@@ -49,6 +50,8 @@ export interface WeightLossGoal {
   numberOfDays: number;
   startDate: string;
   updatedAt?: Timestamp;
+  weightingTime: 'tonight' | 'yesterday';
+  isWeightSaved?: boolean;
 }
 
 export interface DayEntry {
@@ -206,4 +209,86 @@ export function onWeightLossGoalChange(uid: string, callback: (goal: WeightLossG
   }, (error) => {
     console.error('Weight loss goal listener error:', error);
   });
+}
+
+// Save pending goal
+export async function savePendingGoal(uid: string, goal: WeightLossGoal | null): Promise<void> {
+  try {
+    const userRef = doc(db, 'users', uid);
+    
+    // Get current user data
+    const userDoc = await getDoc(userRef);
+    const userData = userDoc.data() || {};
+    
+    // Update the user document with the pending goal
+    await setDoc(userRef, {
+      ...userData,
+      pendingGoal: goal ? {
+        ...goal,
+        updatedAt: Timestamp.now()
+      } : null
+    });
+  } catch (error) {
+    console.error('Error saving pending goal:', error);
+    throw error;
+  }
+}
+
+// Real-time listener for pending goal
+export function onPendingGoalChange(uid: string, callback: (goal: WeightLossGoal | null) => void) {
+  const userRef = doc(db, 'users', uid);
+  
+  return onSnapshot(userRef, (doc) => {
+    const data = doc.data();
+    callback(data?.pendingGoal || null);
+  }, (error) => {
+    console.error('Error in pending goal listener:', error);
+    callback(null);
+  });
+}
+
+// Clear all user setup data
+export async function clearUserSetupData(uid: string): Promise<void> {
+  try {
+    const userRef = doc(db, 'users', uid);
+    const batch = writeBatch(db);
+
+    // Clear pending goal
+    batch.update(userRef, { pendingGoal: null });
+
+    // Clear day entries
+    const dayEntriesRef = collection(userRef, 'dayEntries');
+    const dayEntries = await getDocs(dayEntriesRef);
+    dayEntries.forEach(doc => {
+      batch.delete(doc.ref);
+    });
+
+    await batch.commit();
+  } catch (error) {
+    console.error('Error clearing user setup data:', error);
+    throw error;
+  }
+}
+
+// Update pending goal weight saved status
+export async function updatePendingGoalWeightSaved(uid: string): Promise<void> {
+  try {
+    const userRef = doc(db, 'users', uid);
+    const userDoc = await getDoc(userRef);
+    const userData = userDoc.data() || {};
+    
+    if (userData.pendingGoal) {
+      await setDoc(userRef, {
+        ...userData,
+        pendingGoal: {
+          ...userData.pendingGoal,
+          isWeightSaved: true,
+          updatedAt: Timestamp.now()
+        }
+      });
+    }
+  } catch (error) {
+    console.error('Error updating pending goal weight saved status:', error);
+    throw error;
+  }
 }
