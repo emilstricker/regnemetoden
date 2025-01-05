@@ -53,7 +53,7 @@ export function SetupForm({ onSubmit, initialValues }: SetupFormProps) {
   useEffect(() => {
     const now = new Date();
     const hour = now.getHours();
-    setWeightingTime(hour >= 20 ? 'tonight' : 'yesterday');
+    setWeightingTime(hour >= 10 ? 'tonight' : 'yesterday');
   }, []);
 
   const { minDays, maxDays, dailyLoss } = useMemo(() => {

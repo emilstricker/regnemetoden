@@ -85,11 +85,11 @@ function App() {
   }, [dateOffset]);
 
   const isDayZero = useMemo(() => {
-    if (!pendingGoal?.startDate) return false;
+    if (!pendingGoal?.startDate || pendingGoal.weightingTime !== 'tonight') return false;
     const startDate = new Date(pendingGoal.startDate);
     const today = startOfDay(currentDate);
-    return startDate.getTime() === today.getTime() || !pendingGoal.isWeightSaved;
-  }, [pendingGoal?.startDate, pendingGoal?.isWeightSaved, currentDate]);
+    return startDate.getTime() === today.getTime();
+  }, [pendingGoal?.startDate, pendingGoal?.weightingTime, currentDate]);
 
   const currentDayStart = startOfDay(currentDate).toISOString();
   const currentDayEntry = dayEntries.find(entry => 
