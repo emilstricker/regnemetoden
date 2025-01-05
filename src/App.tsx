@@ -88,8 +88,8 @@ function App() {
     if (!pendingGoal?.startDate) return false;
     const startDate = new Date(pendingGoal.startDate);
     const today = startOfDay(currentDate);
-    return startDate.getTime() === today.getTime();
-  }, [pendingGoal?.startDate, currentDate]);
+    return startDate.getTime() === today.getTime() || !pendingGoal.isWeightSaved;
+  }, [pendingGoal?.startDate, pendingGoal?.isWeightSaved, currentDate]);
 
   const currentDayStart = startOfDay(currentDate).toISOString();
   const currentDayEntry = dayEntries.find(entry => 
@@ -142,11 +142,10 @@ function App() {
 
     try {
       const goal: WeightLossGoal = {
-        startWeight: data.startWeight,
-        targetWeight: data.targetWeight,
-        numberOfDays: data.numberOfDays,
-        startDate: data.startDate,
-        weightingTime: data.weightingTime
+        ...data,
+        startDate: startOfDay(new Date(data.startDate)).toISOString().split('T')[0],
+        weightingTime: data.weightingTime,
+        isWeightSaved: false
       };
 
       if (data.weightingTime === 'tonight') {
