@@ -25,6 +25,7 @@ import { db } from './lib/firebase';
 import { Auth } from './components/Auth';
 import { useAuth } from './contexts/AuthContext';
 import { Header } from './components/Header';
+import { useMemo } from 'react';
 
 const isDevelopment = process.env.NODE_ENV === 'development';
 
@@ -78,7 +79,18 @@ function App() {
     };
   }, [user]);
 
-  const currentDate = addDays(new Date(), dateOffset);
+  const currentDate = useMemo(() => {
+    const now = new Date();
+    return addDays(now, dateOffset);
+  }, [dateOffset]);
+
+  const isDayZero = useMemo(() => {
+    if (!pendingGoal?.startDate) return false;
+    const startDate = new Date(pendingGoal.startDate);
+    const today = startOfDay(currentDate);
+    return startDate.getTime() === today.getTime();
+  }, [pendingGoal?.startDate, currentDate]);
+
   const currentDayStart = startOfDay(currentDate).toISOString();
   const currentDayEntry = dayEntries.find(entry => 
     startOfDay(new Date(entry.date)).toISOString() === currentDayStart
@@ -226,8 +238,8 @@ function App() {
     );
   }
 
-  // Show day zero guide if there's a pending goal
-  if (pendingGoal?.weightingTime === 'tonight') {
+  // Show day zero guide if there's a pending goal and it's still day zero
+  if (pendingGoal?.weightingTime === 'tonight' && isDayZero) {
     return (
       <div className="min-h-screen bg-[url('/src/styles/background.jpg')] bg-cover bg-center bg-fixed font-sans antialiased">
         <Header 

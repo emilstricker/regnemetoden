@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { saveDayEntry, updatePendingGoalWeightSaved } from '@/lib/firebase';
 import { CheckCircle2 } from "lucide-react"
+import { startOfDay } from 'date-fns';
 
 interface DayZeroGuideProps {
   onBack: () => void;
@@ -49,7 +50,7 @@ export function DayZeroGuide({
 
       // Save the weight
       await saveDayEntry(user.uid, {
-        date: new Date().toISOString().split('T')[0],
+        date: startOfDay(new Date()).toISOString().split('T')[0],
         weight: weightValue,
         foodEntries: []
       });
