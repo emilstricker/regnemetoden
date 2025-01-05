@@ -238,7 +238,7 @@ function App() {
   }
 
   // Show day zero guide if there's a pending goal and it's still day zero
-  if (pendingGoal?.weightingTime === 'tonight' && isDayZero) {
+  if (pendingGoal && isDayZero) {
     return (
       <div className="min-h-screen bg-[url('/src/styles/background.jpg')] bg-cover bg-center bg-fixed font-sans antialiased">
         <Header 
