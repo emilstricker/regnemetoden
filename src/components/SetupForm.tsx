@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
-import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
 import { motion } from 'framer-motion';
 import { Slider } from "@/components/ui/slider";
 import { format, addDays } from 'date-fns';
@@ -30,8 +29,25 @@ const MIN_DAILY_LOSS = 0.05; // 50g per day
 export function SetupForm({ onSubmit, initialValues }: SetupFormProps) {
   const [startWeight, setStartWeight] = useState(initialValues?.startWeight.toString() || '');
   const [targetWeight, setTargetWeight] = useState(initialValues?.targetWeight.toString() || '');
-  const [numberOfDays, setNumberOfDays] = useState<number>(initialValues?.numberOfDays || 30);
+  const [numberOfDays, setNumberOfDays] = useState<number>(initialValues?.numberOfDays || 0);
   const [weightingTime, setWeightingTime] = useState<'tonight' | 'yesterday'>('yesterday');
+
+  // Calculate default number of days when weights change
+  useEffect(() => {
+    const weightToLose = parseFloat(startWeight) - parseFloat(targetWeight);
+    if (!isNaN(weightToLose) && weightToLose > 0) {
+      // Target 100g per day (0.1 kg)
+      const targetDailyLoss = 0.1;
+      const calculatedDays = Math.round(weightToLose / targetDailyLoss);
+      
+      // Ensure it's within min/max bounds
+      const minDays = Math.ceil(weightToLose / MAX_DAILY_LOSS);
+      const maxDays = Math.floor(weightToLose / MIN_DAILY_LOSS);
+      
+      const boundedDays = Math.min(Math.max(calculatedDays, minDays), maxDays);
+      setNumberOfDays(boundedDays);
+    }
+  }, [startWeight, targetWeight]);
 
   // Auto-select based on time of day
   useEffect(() => {
@@ -108,80 +124,83 @@ export function SetupForm({ onSubmit, initialValues }: SetupFormProps) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
+          className="w-full max-w-4xl mx-auto"
         >
-          <Card className="w-full max-w-2xl mx-auto">
-            <CardHeader className="pb-4 space-y-4">
-              <CardTitle className="text-3xl font-bold text-center">Opsætning</CardTitle>
-              <p className="text-muted-foreground text-center">
-                Indtast dine målsætninger for at komme i gang
-              </p>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-8">
-                <motion.div 
-                  className="space-y-6 rounded-lg bg-muted/50 p-6"
-                  variants={inputVariants}
-                  initial="initial"
-                  animate="animate"
-                  transition={{ duration: 0.3, delay: 0.1 }}
-                >
-                  <div className="space-y-2">
-                    <Label htmlFor="weightingTime" className="text-lg font-semibold">
-                      Hvornår vil du veje dig?
-                    </Label>
-                    <RadioGroup 
-                      value={weightingTime} 
-                      onValueChange={(value: 'tonight' | 'yesterday') => setWeightingTime(value)}
-                      className="pt-2 space-y-3"
-                    >
-                      <div className="flex items-center space-x-3">
-                        <RadioGroupItem value="tonight" id="tonight" />
-                        <Label htmlFor="tonight" className="font-medium">
-                          Jeg vil veje mig i aften før sengetid
-                        </Label>
-                      </div>
-                      <div className="flex items-center space-x-3">
-                        <RadioGroupItem value="yesterday" id="yesterday" />
-                        <Label htmlFor="yesterday" className="font-medium">
-                          Jeg vejede mig i går aftes
-                        </Label>
-                      </div>
-                    </RadioGroup>
-                  </div>
-                </motion.div>
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold mb-2">Opsætning</h1>
+            <p className="text-lg text-muted-foreground">
+              Indtast dine målsætninger for at komme i gang
+            </p>
+          </div>
 
-                <motion.div 
-                  className="space-y-6 rounded-lg bg-muted/50 p-6"
-                  variants={inputVariants}
-                  initial="initial"
-                  animate="animate"
-                  transition={{ duration: 0.3, delay: 0.2 }}
+          <form onSubmit={handleSubmit} className="space-y-8">
+            <motion.div 
+              className="rounded-lg border bg-card text-card-foreground p-8"
+              variants={inputVariants}
+              initial="initial"
+              animate="animate"
+              transition={{ duration: 0.3, delay: 0.1 }}
+            >
+              <div className="space-y-4">
+                <Label htmlFor="weightingTime" className="text-xl font-semibold">
+                  Hvornår vil du veje dig?
+                </Label>
+                <RadioGroup 
+                  value={weightingTime} 
+                  onValueChange={(value: 'tonight' | 'yesterday') => setWeightingTime(value)}
+                  className="pt-2 space-y-4"
                 >
-                  <div className="space-y-2">
-                    <Label htmlFor="startWeight" className="text-lg font-semibold">
-                      {weightingTime === 'tonight' ? 'Din estimerede startvægt (kg)' : 'Din startvægt (kg)'}
+                  <div className="flex items-center space-x-3 p-4 rounded-lg border hover:bg-accent cursor-pointer">
+                    <RadioGroupItem value="tonight" id="tonight" />
+                    <Label htmlFor="tonight" className="font-medium cursor-pointer">
+                      Jeg vil veje mig i aften før sengetid
                     </Label>
-                    <div className="space-y-4">
-                      <div className="text-sm text-muted-foreground">
-                        {weightingTime === 'tonight' 
-                          ? 'Du kan opdatere dette med din præcise vægt senere' 
-                          : 'Din vægt fra i går aftes:'
-                        }
-                      </div>
-                      <ul className="text-sm text-muted-foreground list-disc list-inside space-y-2 ml-2">
-                        {weightingTime === 'tonight' ? (
-                          <>
-                            <li>Vej dig selv lige før sengetid</li>
-                            <li>Efter dit sidste måltid og toiletbesøg</li>
-                            <li>Brug den samme badevægt hver gang du vejer dig</li>
-                          </>
-                        ) : (
-                          <>
-                            <li>Indtast din vægt fra i går aftes</li>
-                            <li>Hvis du ikke vejede dig i går, vælg "Jeg vejer mig i aften" i stedet</li>
-                          </>
-                        )}
-                      </ul>
+                  </div>
+                  <div className="flex items-center space-x-3 p-4 rounded-lg border hover:bg-accent cursor-pointer">
+                    <RadioGroupItem value="yesterday" id="yesterday" />
+                    <Label htmlFor="yesterday" className="font-medium cursor-pointer">
+                      Jeg vejede mig i går aftes
+                    </Label>
+                  </div>
+                </RadioGroup>
+              </div>
+            </motion.div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <motion.div 
+                className="rounded-lg border bg-card text-card-foreground p-8"
+                variants={inputVariants}
+                initial="initial"
+                animate="animate"
+                transition={{ duration: 0.3, delay: 0.2 }}
+              >
+                <div className="space-y-4">
+                  <Label htmlFor="startWeight" className="text-xl font-semibold">
+                    {weightingTime === 'tonight' ? 'Din estimerede startvægt' : 'Din startvægt'}
+                  </Label>
+                  <div className="space-y-4">
+                    <div className="text-sm text-muted-foreground">
+                      {weightingTime === 'tonight' 
+                        ? 'Du kan opdatere dette med din præcise vægt senere' 
+                        : 'Din vægt fra i går aftes:'
+                      }
+                    </div>
+                    <ul className="text-sm text-muted-foreground list-disc list-inside space-y-2 ml-2">
+                      {weightingTime === 'tonight' ? (
+                        <>
+                          <li>Vej dig selv lige før sengetid</li>
+                          <li>Efter dit sidste måltid og toiletbesøg</li>
+                          <li>Brug den samme badevægt hver gang</li>
+                        </>
+                      ) : (
+                        <>
+                          <li>Indtast din vægt fra i går aftes</li>
+                          <li>Hvis du ikke vejede dig i går, vælg "Jeg vejer mig i aften"</li>
+                        </>
+                      )}
+                    </ul>
+                    <div className="pt-2">
+                      <div className="text-sm font-medium mb-2">Vægt i kg</div>
                       <Input
                         type="number"
                         id="startWeight"
@@ -193,21 +212,31 @@ export function SetupForm({ onSubmit, initialValues }: SetupFormProps) {
                       />
                     </div>
                   </div>
-                </motion.div>
+                </div>
+              </motion.div>
 
-                <motion.div 
-                  className="space-y-6 rounded-lg bg-muted/50 p-6"
-                  variants={inputVariants}
-                  initial="initial"
-                  animate="animate"
-                  transition={{ duration: 0.3, delay: 0.3 }}
-                >
-                  <div className="space-y-2">
-                    <Label htmlFor="targetWeight" className="text-lg font-semibold">Målvægt (kg)</Label>
-                    <div className="space-y-4">
-                      <div className="text-sm text-muted-foreground">
-                        Den vægt du ønsker at nå ned til
-                      </div>
+              <motion.div 
+                className="rounded-lg border bg-card text-card-foreground p-8"
+                variants={inputVariants}
+                initial="initial"
+                animate="animate"
+                transition={{ duration: 0.3, delay: 0.3 }}
+              >
+                <div className="space-y-4">
+                  <Label htmlFor="targetWeight" className="text-xl font-semibold">Din målvægt</Label>
+                  <div className="space-y-4">
+                    <div className="text-sm text-muted-foreground">
+                      Den vægt du ønsker at nå ned til
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      Vælg en realistisk målvægt:
+                    </div>
+                    <ul className="text-sm text-muted-foreground list-disc list-inside space-y-2 ml-2">
+                      <li>Ikke for lav - du kan altid sætte et nyt mål senere</li>
+                      <li>Tænk på det som et delmål i din rejse</li>
+                    </ul>
+                    <div className="pt-2">
+                      <div className="text-sm font-medium mb-2">Vægt i kg</div>
                       <Input
                         type="number"
                         id="targetWeight"
@@ -220,73 +249,73 @@ export function SetupForm({ onSubmit, initialValues }: SetupFormProps) {
                       />
                     </div>
                   </div>
-                </motion.div>
+                </div>
+              </motion.div>
+            </div>
 
-                <motion.div 
-                  className="space-y-6 rounded-lg bg-muted/50 p-6"
-                  variants={inputVariants}
-                  initial="initial"
-                  animate="animate"
-                  transition={{ duration: 0.3, delay: 0.4 }}
-                >
-                  <div className="space-y-2">
-                    <Label htmlFor="numberOfDays" className="text-lg font-semibold">Varighed</Label>
-                    <div className="space-y-6">
-                      {minDays > 0 && maxDays > 0 && (
-                        <>
-                          <div className="space-y-4">
-                            <div className="flex justify-between text-sm text-muted-foreground font-medium">
-                              <span>Hurtigst muligt ({minDays} dage)</span>
-                              <span>Langsomt ({maxDays} dage)</span>
-                            </div>
-                            <Slider
-                              id="numberOfDays"
-                              min={minDays}
-                              max={maxDays}
-                              step={1}
-                              value={[numberOfDays]}
-                              onValueChange={handleDaysChange}
-                              className="w-full"
-                            />
-                          </div>
-                          <div className="space-y-2 pt-2">
-                            <div className="flex justify-between items-baseline">
-                              <span className="text-3xl font-bold">{numberOfDays} dage</span>
-                              <span className="text-sm text-muted-foreground">
-                                Slut dato: {format(endDate, 'd. MMMM yyyy', { locale: da })}
-                              </span>
-                            </div>
-                            {dailyLoss > 0 && (
-                              <div className="text-sm text-muted-foreground">
-                                Dette betyder et dagligt vægttab på <span className="font-medium">{(dailyLoss * 1000).toFixed(0)}g</span>
-                              </div>
-                            )}
-                          </div>
-                        </>
-                      )}
-                      {(minDays === 0 || maxDays === 0) && (
-                        <div className="text-sm text-muted-foreground italic">
-                          Indtast start- og målvægt for at se mulige varigheder
+            <motion.div 
+              className="rounded-lg border bg-card text-card-foreground p-8"
+              variants={inputVariants}
+              initial="initial"
+              animate="animate"
+              transition={{ duration: 0.3, delay: 0.4 }}
+            >
+              <div className="space-y-4">
+                <Label htmlFor="numberOfDays" className="text-xl font-semibold">Varighed</Label>
+                <div className="space-y-6">
+                  {minDays > 0 && maxDays > 0 && (
+                    <>
+                      <div className="space-y-6">
+                        <div className="flex justify-between text-sm text-muted-foreground font-medium">
+                          <span>Hurtigst muligt ({minDays} dage)</span>
+                          <span>Langsomt ({maxDays} dage)</span>
                         </div>
-                      )}
+                        <Slider
+                          id="numberOfDays"
+                          min={minDays}
+                          max={maxDays}
+                          step={1}
+                          value={[numberOfDays]}
+                          onValueChange={handleDaysChange}
+                          className="w-full"
+                        />
+                      </div>
+                      <div className="pt-4 space-y-2">
+                        <div className="flex justify-between items-baseline">
+                          <span className="text-4xl font-bold">{numberOfDays} dage</span>
+                          <span className="text-sm text-muted-foreground">
+                            Slut dato: {format(endDate, 'd. MMMM yyyy', { locale: da })}
+                          </span>
+                        </div>
+                        {dailyLoss > 0 && (
+                          <div className="text-sm text-muted-foreground">
+                            Dette betyder et dagligt vægttab på <span className="font-medium">{(dailyLoss * 1000).toFixed(0)}g</span>
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  )}
+                  {(minDays === 0 || maxDays === 0) && (
+                    <div className="text-sm text-muted-foreground italic">
+                      Indtast start- og målvægt for at se mulige varigheder
                     </div>
-                  </div>
-                </motion.div>
+                  )}
+                </div>
+              </div>
+            </motion.div>
 
-                <motion.div
-                  variants={inputVariants}
-                  initial="initial"
-                  animate="animate"
-                  transition={{ duration: 0.3, delay: 0.6 }}
-                  className="pt-4"
-                >
-                  <Button type="submit" className="w-full h-12 text-lg font-semibold">
-                    Start din rejse
-                  </Button>
-                </motion.div>
-              </form>
-            </CardContent>
-          </Card>
+            <motion.div
+              variants={inputVariants}
+              initial="initial"
+              animate="animate"
+              transition={{ duration: 0.3, delay: 0.5 }}
+              className="pt-4"
+            >
+              <Button type="submit" className="w-full text-lg py-6 font-semibold">
+                Start din rejse
+              </Button>
+            </motion.div>
+          </form>
         </motion.div>
       </div>
     </div>

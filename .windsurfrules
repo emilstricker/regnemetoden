@@ -3,4 +3,4 @@ import { TimeSeriesScale } from "chart.js"
 This project uses Vite, React, shadcn-ui, and TypeScript.
 Please make sure the methodology in instructions.md is followed at all times.
 
-When installing shadcn-ui, make sure to remember the new command is shadcn , not shadcn-ui.
+When installing shadcn-ui, make sure to remember the new command is shadcn@latest , not shadcn-ui@latest .

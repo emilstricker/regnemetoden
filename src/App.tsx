@@ -36,7 +36,6 @@ function App() {
   const [dateOffset, setDateOffset] = useState(0);
   const [isDevHeaderExpanded] = useState(true);
   const [isDataInitialized, setIsDataInitialized] = useState(false);
-  const [showDayZeroGuide, setShowDayZeroGuide] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -120,21 +119,6 @@ function App() {
     }
   };
 
-  const handleGoalUpdate = async (goal: Omit<WeightLossGoal, 'startDate'>) => {
-    if (!user) return;
-
-    try {
-      const goalWithDate: WeightLossGoal = {
-        ...goal,
-        startDate: new Date().toISOString()
-      };
-      
-      await saveWeightLossGoal(user.uid, goalWithDate);
-    } catch (error) {
-      console.error('Error saving weight loss goal:', error);
-    }
-  };
-
   const handleSetupSubmit = async (data: {
     startWeight: number;
     targetWeight: number;
@@ -163,17 +147,6 @@ function App() {
     }
   };
 
-  const handleDayZeroComplete = async () => {
-    if (!user || !pendingGoal) return;
-    try {
-      // Save the goal but don't clear the pending goal yet
-      // The user needs to come back tomorrow to start
-      await saveWeightLossGoal(user.uid, pendingGoal);
-    } catch (error) {
-      console.error('Error saving goal after day zero:', error);
-    }
-  };
-
   const handleDayZeroBack = async () => {
     if (!user) return;
     try {
@@ -182,14 +155,6 @@ function App() {
     } catch (error) {
       console.error('Error clearing setup data:', error);
     }
-  };
-
-  const handleDayZeroUpdatePlan = async (actualWeight: number) => {
-    if (!pendingGoal) return;
-    setPendingGoal({
-      ...pendingGoal,
-      startWeight: actualWeight
-    });
   };
 
   const handleSignOut = async () => {
@@ -265,9 +230,12 @@ function App() {
   if (pendingGoal?.weightingTime === 'tonight') {
     return (
       <div className="min-h-screen bg-[url('/src/styles/background.jpg')] bg-cover bg-center bg-fixed font-sans antialiased">
-        <div className="min-h-screen flex items-center justify-center p-4">
-          <DayZeroGuide 
-            onComplete={handleDayZeroComplete}
+        <Header 
+          onSignOut={handleSignOut}
+          onResetPlan={() => {}}
+        />
+        <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4">
+          <DayZeroGuide
             onBack={handleDayZeroBack}
             estimatedWeight={pendingGoal.startWeight}
             isWeightSaved={pendingGoal.isWeightSaved}
@@ -277,10 +245,15 @@ function App() {
     );
   }
 
+  // Show setup form if no goal exists
   if (!weightLossGoal) {
     return (
       <div className="min-h-screen bg-[url('/src/styles/background.jpg')] bg-cover bg-center bg-fixed font-sans antialiased">
-        <div className="min-h-screen flex items-center justify-center p-4">
+        <Header 
+          onSignOut={handleSignOut}
+          onResetPlan={() => {}}
+        />
+        <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4">
           <SetupForm onSubmit={handleSetupSubmit} />
         </div>
       </div>
@@ -289,7 +262,10 @@ function App() {
 
   return (
     <div className="min-h-screen bg-[url('/src/styles/background.jpg')] bg-cover bg-center bg-fixed font-sans antialiased">
-      <Header onResetPlan={handleResetPlan} />
+      <Header 
+        onResetPlan={handleResetPlan}
+        onSignOut={handleSignOut}
+      />
       <main className="container mx-auto p-4 space-y-4">
         {isDevelopment && isDevHeaderExpanded && (
           <motion.div

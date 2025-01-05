@@ -5,18 +5,16 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
-import { saveDayEntry } from '@/lib/firebase';
+import { saveDayEntry, updatePendingGoalWeightSaved } from '@/lib/firebase';
 import { CheckCircle2 } from "lucide-react"
 
 interface DayZeroGuideProps {
-  onComplete: () => void;
   onBack: () => void;
   estimatedWeight: number;
   isWeightSaved?: boolean;
 }
 
 export function DayZeroGuide({ 
-  onComplete, 
   onBack,
   estimatedWeight,
   isWeightSaved: initialWeightSaved = false
