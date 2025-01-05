@@ -234,6 +234,47 @@ function App() {
           onSignOut={handleSignOut}
           onResetPlan={() => {}}
         />
+        {isDevelopment && isDevHeaderExpanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="bg-muted/50 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+          >
+            <div className="container flex items-center justify-between p-4">
+              <div className="flex items-center gap-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setDateOffset(prev => prev - 1)}
+                  disabled={dateOffset <= 1}
+                >
+                  ←
+                </Button>
+                <span className="text-sm">
+                  {format(currentDate, 'EEEE d. MMMM', { locale: da })}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setDateOffset(prev => prev + 1)}
+                >
+                  →
+                </Button>
+              </div>
+              <div className="flex items-center gap-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setDateOffset(0)}
+                  disabled={dateOffset === 0}
+                >
+                  I dag
+                </Button>
+              </div>
+            </div>
+          </motion.div>
+        )}
         <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4">
           <DayZeroGuide
             onBack={handleDayZeroBack}
@@ -253,6 +294,47 @@ function App() {
           onSignOut={handleSignOut}
           onResetPlan={() => {}}
         />
+        {isDevelopment && isDevHeaderExpanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="bg-muted/50 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+          >
+            <div className="container flex items-center justify-between p-4">
+              <div className="flex items-center gap-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setDateOffset(prev => prev - 1)}
+                  disabled={dateOffset <= 1}
+                >
+                  ←
+                </Button>
+                <span className="text-sm">
+                  {format(currentDate, 'EEEE d. MMMM', { locale: da })}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setDateOffset(prev => prev + 1)}
+                >
+                  →
+                </Button>
+              </div>
+              <div className="flex items-center gap-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setDateOffset(0)}
+                  disabled={dateOffset === 0}
+                >
+                  I dag
+                </Button>
+              </div>
+            </div>
+          </motion.div>
+        )}
         <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4">
           <SetupForm onSubmit={handleSetupSubmit} />
         </div>
