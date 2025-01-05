@@ -24,44 +24,31 @@ export function WeightInput({ onSubmit, className }: WeightInputProps) {
 
   return (
     <motion.div 
-      whileHover={{ scale: 1.03, boxShadow: "0 8px 30px rgba(0,0,0,0.12)" }} 
-      transition={{ duration: 0.2 }}
-      className={cn("max-w-xl mx-auto", className)}
+      initial={{ scale: 0.95, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      className={cn("w-full max-w-[240px]", className)}
     >
       <Card>
         <CardContent className="pt-6">
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-                Morgenvægt
-              </h2>
-              <p className="text-sm text-muted-foreground mt-1">
-                Indtast din vægt for at komme i gang
-              </p>
-            </div>
-
-            <form onSubmit={handleSubmit}>
-              <div className="flex gap-3">
-                <Input
-                  type="number"
-                  step="0.1"
-                  value={weight}
-                  onChange={(e) => setWeight(e.target.value)}
-                  className="text-3xl h-16 text-center font-medium"
-                  placeholder="0.0"
-                  autoFocus
-                />
-                <Button 
-                  type="submit" 
-                  size="lg"
-                  className="h-16 px-8"
-                  disabled={!weight || isNaN(parseFloat(weight))}
-                >
-                  Gem
-                </Button>
-              </div>
-            </form>
-          </div>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <Input
+              type="number"
+              step="0.1"
+              value={weight}
+              onChange={(e) => setWeight(e.target.value)}
+              className="text-4xl h-20 text-center font-medium"
+              placeholder="0.0"
+              autoFocus
+            />
+            <Button 
+              type="submit" 
+              size="lg"
+              className="w-full h-12 text-lg"
+              disabled={!weight || isNaN(parseFloat(weight))}
+            >
+              Gem vægt
+            </Button>
+          </form>
         </CardContent>
       </Card>
     </motion.div>

@@ -11,6 +11,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from '@/lib/utils';
+import { isCurrentDay } from '@/lib/date';
 import { MorningWeight } from './MorningWeight';
 import { DailyGoal } from './DailyGoal';
 import { DailyDeficit } from './DailyDeficit';
@@ -89,6 +90,21 @@ export function DailyTracking({
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [handleQuickAdd]);
 
+  const needsWeightEntry = !todayEntry?.weight && isCurrentDay(String(todayEntry?.date || ''));
+  if (needsWeightEntry) {
+    return (
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className={cn("min-h-[80vh] flex flex-col items-center justify-center p-6 text-center", className)}
+      >
+        <h2 className="text-2xl font-semibold mb-2">God morgen!</h2>
+        <p className="text-muted-foreground mb-8">Lad os starte med at få din vægt for i dag.</p>
+        <WeightInput onSubmit={onAddWeightEntry} />
+      </motion.div>
+    );
+  }
+
   // Calculate daily target weight and food allowance
   const daysSinceStart = Math.floor(
     (currentDate.getTime() - new Date(userData.startDate).getTime()) / (1000 * 60 * 60 * 24)
@@ -101,14 +117,6 @@ export function DailyTracking({
   const weightDifference = todayEntry?.weight ? todayTargetWeight - todayEntry.weight : 0;
   const foodAllowanceGrams = Math.max(0, Math.round(weightDifference * 1000));
   const totalConsumed = todayEntry?.foodEntries.reduce((sum, entry) => sum + entry.amount, 0) || 0;
-
-  if (!todayEntry?.weight) {
-    return (
-      <div className={cn("min-h-[80vh] flex items-center justify-center p-6", className)}>
-        <WeightInput onSubmit={onAddWeightEntry} />
-      </div>
-    );
-  }
 
   return (
     <div className={cn("grid grid-cols-1 lg:grid-cols-6 gap-6", className)}>

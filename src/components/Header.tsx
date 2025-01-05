@@ -1,4 +1,3 @@
-import { signOutUser } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
@@ -21,9 +20,10 @@ import { ChevronDown } from "lucide-react";
 
 interface HeaderProps {
   onResetPlan: () => void;
+  onSignOut: () => Promise<void>;
 }
 
-export function Header({ onResetPlan }: HeaderProps) {
+export function Header({ onResetPlan, onSignOut }: HeaderProps) {
   return (
     <header className="flex justify-between items-center py-4 px-6 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50 sticky top-0 w-full border-b">
       <DropdownMenu>
@@ -56,7 +56,7 @@ export function Header({ onResetPlan }: HeaderProps) {
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
-          <DropdownMenuItem onSelect={() => signOutUser()}>
+          <DropdownMenuItem onSelect={onSignOut}>
             Log ud
           </DropdownMenuItem>
         </DropdownMenuContent>

@@ -51,6 +51,11 @@ export interface WeightLossGoal {
   updatedAt?: Timestamp;
 }
 
+export interface PendingGoal extends WeightLossGoal {
+  weightingTime: 'tonight' | 'yesterday';
+  isWeightSaved: boolean;
+}
+
 export interface DayEntry {
   weight?: number;
   date: string;
@@ -62,6 +67,7 @@ export interface DayEntry {
 export interface UserData {
   uid: string;
   weightLossGoal: WeightLossGoal | null;
+  pendingGoal: PendingGoal | null;
   dayEntries: DayEntry[];
 }
 
@@ -130,6 +136,16 @@ export async function saveWeightLossGoal(uid: string, goal: WeightLossGoal) {
   }, { merge: true });
 }
 
+export async function savePendingGoal(uid: string, goal: PendingGoal) {
+  const userRef = doc(db, 'users', uid);
+  await setDoc(userRef, { 
+    pendingGoal: {
+      ...goal,
+      updatedAt: Timestamp.now()  
+    }
+  }, { merge: true });
+}
+
 export async function saveDayEntry(uid: string, entry: DayEntry) {
   const dayEntryRef = doc(db, 'users', uid, 'dayEntries', startOfDay(new Date(entry.date)).toISOString());
   await setDoc(dayEntryRef, {
@@ -142,6 +158,12 @@ export async function getWeightLossGoal(uid: string): Promise<WeightLossGoal | n
   const userRef = doc(db, 'users', uid);
   const userDoc = await getDoc(userRef);
   return userDoc.exists() ? userDoc.data().weightLossGoal : null;
+}
+
+export async function getPendingGoal(uid: string): Promise<PendingGoal | null> {
+  const userRef = doc(db, 'users', uid);
+  const userDoc = await getDoc(userRef);
+  return userDoc.exists() ? userDoc.data().pendingGoal : null;
 }
 
 export async function getDayEntries(uid: string): Promise<DayEntry[]> {
@@ -167,6 +189,8 @@ export async function initializeUserData(uid: string): Promise<void> {
       await setDoc(userRef, {
         uid,
         weightLossGoal: null,
+        pendingGoal: null,
+        dayEntries: [],
         createdAt: Timestamp.now()
       });
       console.log('User document created');
@@ -177,6 +201,15 @@ export async function initializeUserData(uid: string): Promise<void> {
     console.error('Error initializing user data:', error);
     throw new Error(error.message);
   }
+}
+
+export async function clearUserSetupData(uid: string): Promise<void> {
+  const userRef = doc(db, 'users', uid);
+  await setDoc(userRef, { 
+    weightLossGoal: null,
+    pendingGoal: null,
+    updatedAt: Timestamp.now()
+  }, { merge: true });
 }
 
 // Real-time listeners
@@ -205,5 +238,20 @@ export function onWeightLossGoalChange(uid: string, callback: (goal: WeightLossG
     callback(data?.weightLossGoal || null);
   }, (error) => {
     console.error('Weight loss goal listener error:', error);
+  });
+}
+
+export function onPendingGoalChange(uid: string, callback: (goal: PendingGoal | null) => void) {
+  const userRef = doc(db, 'users', uid);
+  
+  return onSnapshot(userRef, (doc) => {
+    if (doc.exists()) {
+      const data = doc.data();
+      callback(data.pendingGoal || null);
+    } else {
+      callback(null);
+    }
+  }, (error) => {
+    console.error('Pending goal listener error:', error);
   });
 }

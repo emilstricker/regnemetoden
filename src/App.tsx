@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
-import { SetupForm } from './components/SetupForm';
-import { DailyTracking } from './components/DailyTracking';
 import { format, addDays, startOfDay } from 'date-fns';
 import { da } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import './styles/globals.css';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
+import { LoadingSpinner } from './components/LoadingSpinner';
 import { 
   WeightLossGoal, 
   DayEntry,
@@ -13,7 +12,8 @@ import {
   saveDayEntry,
   signOutUser,
   onWeightLossGoalChange,
-  onDayEntriesChange
+  onDayEntriesChange,
+  savePendingGoal
 } from './lib/firebase';
 import {
   collection,
@@ -27,6 +27,9 @@ import { db } from './lib/firebase';
 import { Auth } from './components/Auth';
 import { useAuth } from './contexts/AuthContext';
 import { Header } from './components/Header';
+import { SetupForm } from './components/SetupForm';
+import { DailyTracking } from './components/DailyTracking';
+import { getCurrentDate, getCurrentDayStart, setCurrentDate } from './lib/date';
 
 const isDevelopment = process.env.NODE_ENV === 'development';
 
@@ -60,89 +63,112 @@ function App() {
     };
   }, [user]);
 
-  const currentDate = addDays(new Date(), dateOffset);
-  const currentDayStart = startOfDay(currentDate).toISOString();
+  useEffect(() => {
+    if (isDevelopment && dateOffset !== 0) {
+      const newDate = addDays(new Date('2025-01-05T19:07:53+01:00'), dateOffset);
+      setCurrentDate(newDate);
+    }
+  }, [dateOffset]);
+
+  // Get or create today's entry
+  const currentDayStart = getCurrentDayStart();
   const currentDayEntry = dayEntries.find(entry => 
     startOfDay(new Date(entry.date)).toISOString() === currentDayStart
-  );
+  ) || {
+    date: currentDayStart,
+    weight: undefined,
+    foodEntries: []
+  };
 
-  const handleWeightUpdate = async (weight: number) => {
+  const handleAddDayEntry = async (weight: number) => {
     if (!user) return;
 
     try {
-      const newEntry: DayEntry = {
-        ...(currentDayEntry || { foodEntries: [], date: currentDayStart }),
+      await saveDayEntry(user.uid, {
+        ...currentDayEntry,
         weight,
-        date: currentDayStart
-      };
-      
-      await saveDayEntry(user.uid, newEntry);
+        date: currentDayStart,
+        foodEntries: currentDayEntry.foodEntries || []
+      });
     } catch (error) {
-      console.error('Error saving weight:', error);
+      console.error('Error saving day entry:', error);
     }
   };
 
-  const handleFoodEntry = async (amount: number) => {
+  const handleAddFoodEntry = async (amount: number) => {
     if (!user) return;
 
     try {
-      const newEntry: DayEntry = {
-        ...(currentDayEntry || { foodEntries: [], date: currentDayStart }),
+      const updatedEntry = {
+        ...currentDayEntry,
+        date: currentDayStart,
+        weight: currentDayEntry.weight,
         foodEntries: [
-          ...(currentDayEntry?.foodEntries || []),
+          ...(currentDayEntry.foodEntries || []),
           { amount, time: new Date().toISOString() }
-        ],
-        date: currentDayStart
+        ]
       };
-
-      await saveDayEntry(user.uid, newEntry);
+      
+      await saveDayEntry(user.uid, updatedEntry);
     } catch (error) {
-      console.error('Error saving food entry:', error);
+      console.error('Error adding food entry:', error);
     }
   };
 
-  const handleGoalUpdate = async (goal: Omit<WeightLossGoal, 'startDate'>) => {
+  const handleRemoveFoodEntry = async (index: number) => {
     if (!user) return;
 
     try {
-      const goalWithDate: WeightLossGoal = {
-        ...goal,
-        startDate: new Date().toISOString()
+      const updatedEntry = {
+        ...currentDayEntry,
+        date: currentDayStart,
+        weight: currentDayEntry.weight,
+        foodEntries: currentDayEntry.foodEntries.filter((_, i) => i !== index)
       };
       
-      await saveWeightLossGoal(user.uid, goalWithDate);
+      await saveDayEntry(user.uid, updatedEntry);
     } catch (error) {
-      console.error('Error saving weight loss goal:', error);
+      console.error('Error removing food entry:', error);
+    }
+  };
+
+  const handleSetupSubmit = async (data: {
+    startWeight: number;
+    targetWeight: number;
+    numberOfDays: number;
+    startDate: string;
+    weightingTime: 'tonight' | 'yesterday';
+  }) => {
+    if (!user) return;
+
+    try {
+      if (data.weightingTime === 'tonight') {
+        await savePendingGoal(user.uid, {
+          startWeight: 0,
+          targetWeight: data.targetWeight,
+          numberOfDays: data.numberOfDays,
+          startDate: data.startDate,
+          weightingTime: data.weightingTime,
+          isWeightSaved: false
+        });
+      } else {
+        await saveWeightLossGoal(user.uid, {
+          startWeight: data.startWeight,
+          targetWeight: data.targetWeight,
+          numberOfDays: data.numberOfDays,
+          startDate: data.startDate
+        });
+      }
+    } catch (error) {
+      console.error('Error saving goal:', error);
     }
   };
 
   const handleSignOut = async () => {
     try {
       await signOutUser();
-      setWeightLossGoal(null);
-      setDayEntries([]);
-      setDateOffset(0);
     } catch (error) {
       console.error('Error signing out:', error);
-    }
-  };
-
-  const handleRemoveFood = async (index: number) => {
-    if (!user || !currentDayEntry) return;
-
-    try {
-      const newFoodEntries = [...currentDayEntry.foodEntries];
-      newFoodEntries.splice(index, 1);
-
-      const newEntry: DayEntry = {
-        ...currentDayEntry,
-        foodEntries: newFoodEntries,
-        date: currentDayStart
-      };
-
-      await saveDayEntry(user.uid, newEntry);
-    } catch (error) {
-      console.error('Error removing food entry:', error);
     }
   };
 
@@ -153,6 +179,7 @@ function App() {
       // Clear the weight loss goal
       await setDoc(doc(db, 'users', user.uid), { 
         weightLossGoal: null,
+        pendingGoal: null,
         updatedAt: Timestamp.now()
       }, { merge: true });
 
@@ -173,39 +200,42 @@ function App() {
     }
   };
 
-  if (isAuthLoading || isLoading) {
+  // Show loading spinner while initializing
+  if (isLoading || isAuthLoading) {
     return (
-      <div className="min-h-screen bg-[url('/src/styles/background.jpg')] bg-cover bg-center bg-fixed font-sans antialiased">
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <LoadingSpinner />
       </div>
     );
   }
 
+  // If not logged in, show login form
   if (!user) {
-    return (
-      <div className="min-h-screen bg-[url('/src/styles/background.jpg')] bg-cover bg-center bg-fixed font-sans antialiased">
-        <div className="min-h-screen flex items-center justify-center p-4">
-          <Auth />
-        </div>
-      </div>
-    );
+    return <Auth />;
   }
 
+  // Show setup form if no goal exists
   if (!weightLossGoal) {
     return (
       <div className="min-h-screen bg-[url('/src/styles/background.jpg')] bg-cover bg-center bg-fixed font-sans antialiased">
-        <div className="min-h-screen flex items-center justify-center p-4">
-          <SetupForm onSubmit={handleGoalUpdate} />
+        <Header 
+          onResetPlan={handleResetPlan} 
+          onSignOut={handleSignOut} 
+        />
+        <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4">
+          <SetupForm onSubmit={handleSetupSubmit} />
         </div>
       </div>
     );
   }
 
+  // Show dashboard
   return (
     <div className="min-h-screen bg-[url('/src/styles/background.jpg')] bg-cover bg-center bg-fixed font-sans antialiased">
-      <Header onResetPlan={handleResetPlan} />
+      <Header 
+        onResetPlan={handleResetPlan} 
+        onSignOut={handleSignOut} 
+      />
       <main className="container mx-auto p-4 space-y-4">
         {isDevelopment && isDevHeaderExpanded && (
           <motion.div
@@ -225,7 +255,7 @@ function App() {
                   ←
                 </Button>
                 <span className="text-sm">
-                  {format(currentDate, 'EEEE d. MMMM', { locale: da })}
+                  {format(getCurrentDate(), 'EEEE d. MMMM', { locale: da })}
                 </span>
                 <Button
                   variant="outline"
@@ -244,35 +274,19 @@ function App() {
                 >
                   I dag
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleSignOut}
-                >
-                  Log ud
-                </Button>
               </div>
             </div>
           </motion.div>
         )}
-        <AnimatePresence mode="wait">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-            className="space-y-6"
-          >
-            <DailyTracking
-              userData={weightLossGoal}
-              todayEntry={currentDayEntry || { foodEntries: [], date: currentDayStart }}
-              onAddWeightEntry={handleWeightUpdate}
-              onAddFoodEntry={handleFoodEntry}
-              onRemoveFoodEntry={handleRemoveFood}
-              currentDate={currentDate}
-              className="order-1 lg:order-none"
-            />
-          </motion.div>
-        </AnimatePresence>
+
+        <DailyTracking
+          userData={weightLossGoal}
+          todayEntry={currentDayEntry}
+          onAddWeightEntry={handleAddDayEntry}
+          onAddFoodEntry={handleAddFoodEntry}
+          onRemoveFoodEntry={handleRemoveFoodEntry}
+          currentDate={getCurrentDate()}
+        />
       </main>
     </div>
   );
