@@ -133,7 +133,9 @@ export function DailyTracking({
           damping: 30
         }}
       >
-        <TipDisplay />
+        <div className="lg:block hidden">
+          <TipDisplay />
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:auto-rows-fr">
           <DailyGoal
@@ -265,6 +267,9 @@ export function DailyTracking({
           />
         </div>
       </motion.div>
+      <div className="lg:hidden block">
+        <TipDisplay />
+      </div>
 
       <AnimatePresence mode="wait">
         {todayEntry?.foodEntries && todayEntry.foodEntries.length > 0 && (

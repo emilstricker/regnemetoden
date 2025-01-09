@@ -48,7 +48,7 @@ export function SetupForm({ onSubmit, initialValues }: SetupFormProps) {
   const dailyLoss = weightDiff > 0 ? (weightDiff / numberOfDays) : 0;
 
   // Calculate end date
-  const startDate = new Date('2025-01-05T19:07:53+01:00');
+  const startDate = new Date();
   startDate.setHours(0, 0, 0, 0);
   const endDate = addDays(startDate, numberOfDays);
 
@@ -92,7 +92,7 @@ export function SetupForm({ onSubmit, initialValues }: SetupFormProps) {
 
   // Auto-select based on time of day
   useEffect(() => {
-    const now = new Date('2025-01-05T19:07:53+01:00');
+    const now = new Date();
     const hour = now.getHours();
     setWeightingTime(hour >= 10 ? 'tonight' : 'yesterday');
   }, []);

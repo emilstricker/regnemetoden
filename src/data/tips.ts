@@ -21,18 +21,6 @@ export const tips: Tip[] = [
         description: 'Kombinér hurtige tilføjelser for præcise mængder. F.eks. 50g + 50g + 10g = 110g på få sekunder.',
         language: 'da'
     },
-    {
-        category: 'quick-add',
-        title: 'Keyboard Shortcuts',
-        description: 'Use number keys 1-4 for quick additions: 1 for +1g, 2 for +5g, 3 for +10g, and 4 for +50g.',
-        language: 'en'
-    },
-    {
-        category: 'quick-add',
-        title: 'Combine Quick Adds',
-        description: 'Combine quick adds for precise amounts. For example, 50g + 50g + 10g = 110g in seconds.',
-        language: 'en'
-    },
 
     // Subtraction tips
     {
@@ -46,18 +34,6 @@ export const tips: Tip[] = [
         title: 'Håndtering af rester',
         description: 'Indtast negative gram for at fratrække madrester, der ikke blev spist.',
         language: 'da'
-    },
-    {
-        category: 'subtraction',
-        title: 'Plate Weight Subtraction',
-        description: 'Remember to subtract plate weights using negative values, e.g., -100g for an empty plate.',
-        language: 'en'
-    },
-    {
-        category: 'subtraction',
-        title: 'Leftover Management',
-        description: 'Enter negative grams to subtract any food that wasn\'t eaten.',
-        language: 'en'
     },
 
     // Danish translations of general tips
@@ -81,39 +57,57 @@ export const tips: Tip[] = [
     },
     {
         category: 'general',
-        title: 'Stay Hydrated',
-        description: 'Sometimes thirst can be mistaken for hunger. Try drinking water first when you feel hungry between meals.',
-        language: 'en'
+        title: 'Vej dig selv dagligt',
+        description: 'Sørg for at veje dig hver morgen på samme tidspunkt. Det giver dig den mest konsistente data til at følge din fremgang.',
+        language: 'da'
     },
     {
         category: 'general',
-        title: 'Portion Control',
-        description: 'Use smaller plates to make portions look bigger and feel more satisfying.',
-        language: 'en'
+        title: 'Spis i balance',
+        description: 'Planlæg dine måltider i overensstemmelse med dit daglige madbudget. Undgå at overspise, selvom du føler dig sulten.',
+        language: 'da'
     },
     {
         category: 'general',
-        title: 'Mindful Eating',
-        description: 'Eat slowly and without distractions - it helps you feel fuller with less food.',
-        language: 'en'
+        title: 'Hold dig hydreret',
+        description: 'Drik masser af vand i løbet af dagen. Det hjælper med at regulere appetitten og støtter vægttabsprocessen.',
+        language: 'da'
     },
     {
         category: 'general',
-        title: 'Hunger Scale',
-        description: 'Rate your hunger on a scale of 1-10 before eating - aim to eat at 7, stop at 3.',
-        language: 'en'
+        title: 'Undgå ekstreme underskud',
+        description: 'Et drastisk lavt kalorieindtag kan føre til træthed og muskeltab. Hold dit madbudget realistisk.',
+        language: 'da'
     },
     {
         category: 'general',
-        title: 'Kitchen Setup',
-        description: 'Keep your food scale visible and accessible - it encourages consistent tracking.',
-        language: 'en'
+        title: 'Bevæg dig dagligt',
+        description: 'Selv små mængder motion, som en gåtur, kan booste dit vægttab og forbedre dit generelle velvære.',
+        language: 'da'
     },
     {
         category: 'general',
-        title: 'Weekly Prep',
-        description: 'Pre-portion snacks into gram-specific containers for grab-and-go convenience.',
-        language: 'en'
+        title: 'Overvåg din søvn',
+        description: 'Dårlig søvn kan påvirke dine vægttabsmål. Prioritér 7-8 timers søvn hver nat.',
+        language: 'da'
+    },
+    {
+        category: 'general',
+        title: 'Juster efter behov',
+        description: 'Hvis du rammer et plateau, eller vægten ikke falder som forventet, revurder dit daglige madbudget og justér forsigtigt.',
+        language: 'da'
+    },
+    {
+        category: 'general',
+        title: 'Fejr små sejre',
+        description: 'Sæt små mål og beløn dig selv for at nå dem – uden at det påvirker din fremgang negativt.',
+        language: 'da'
+    },
+    {
+        category: 'general',
+        title: 'Følg metoden konsekvent',
+        description: 'Det vigtigste er at være konsistent. Små, daglige skridt fører til store resultater over tid.',
+        language: 'da'
     },
 
     // Danish translations of tracking tips
@@ -135,54 +129,6 @@ export const tips: Tip[] = [
         description: 'Tjek dine ugentlige gram-mønstre for at identificere, hvad der virker bedst for dig.',
         language: 'da'
     },
-    {
-        category: 'tracking',
-        title: 'Quick Logging',
-        description: 'Log grams immediately after eating - waiting until later leads to less accurate tracking.',
-        language: 'en'
-    },
-    {
-        category: 'tracking',
-        title: 'Gram Estimation',
-        description: 'When exact weighing isn\'t possible, round up slightly to stay on the safe side.',
-        language: 'en'
-    },
-    {
-        category: 'tracking',
-        title: 'Weekly Review',
-        description: 'Check your weekly gram patterns to identify what works best for you.',
-        language: 'en'
-    },
-    {
-        category: 'tracking',
-        title: 'Photo Logging',
-        description: 'Take photos of your meals alongside gram weights to build better estimation skills.',
-        language: 'en'
-    },
-    {
-        category: 'tracking',
-        title: 'Morning Routine Optimization',
-        description: 'Create a morning checklist: 1) Weigh yourself 2) Enter weight in app 3) Review gram allowance 4) Plan meals accordingly.',
-        language: 'en'
-    },
-    {
-        category: 'tracking',
-        title: 'Gram Banking',
-        description: 'If you know you\'ll have a higher-gram meal later, intentionally eat lighter earlier in the day to stay within your allowance.',
-        language: 'en'
-    },
-    {
-        category: 'tracking',
-        title: 'Digital Scale Accuracy',
-        description: 'Calibrate your food scale weekly and your body weight scale monthly for the most accurate tracking.',
-        language: 'en'
-    },
-    {
-        category: 'tracking',
-        title: 'Rapid Logging',
-        description: 'Use the quick-add buttons for common portions to make tracking faster and increase consistency.',
-        language: 'en'
-    },
 
     // Danish translations of morning tips
     {
@@ -203,30 +149,6 @@ export const tips: Tip[] = [
         description: 'Gennemgå din gram-tilladelse først på dagen og planlæg dine måltider derefter.',
         language: 'da'
     },
-    {
-        category: 'morning',
-        title: 'Morning Weigh-In Routine',
-        description: 'Always weigh yourself first thing after using the bathroom, before eating or drinking anything.',
-        language: 'en'
-    },
-    {
-        category: 'morning',
-        title: 'Start Strong',
-        description: 'Begin your day with protein-rich foods - they help control hunger throughout the day.',
-        language: 'en'
-    },
-    {
-        category: 'morning',
-        title: 'Morning Gram Planning',
-        description: 'Review your gram allowance first thing and plan your meals accordingly.',
-        language: 'en'
-    },
-    {
-        category: 'morning',
-        title: 'Scale Accuracy',
-        description: 'Keep your scale on a hard, flat surface and stand in the same spot each morning for consistent readings.',
-        language: 'en'
-    },
 
     // Danish translations of evening tips
     {
@@ -241,24 +163,6 @@ export const tips: Tip[] = [
         description: 'Hvis du er sulten før sengetid, prøv en lille protein-snack som hytteost i stedet for kulhydrat-tunge valg.',
         language: 'da'
     },
-    {
-        category: 'evening',
-        title: 'Evening Gram Buffer',
-        description: 'Try to leave 20% of your daily grams for evening snacks if you tend to get hungry at night.',
-        language: 'en'
-    },
-    {
-        category: 'evening',
-        title: 'Pre-Bed Strategy',
-        description: 'If hungry before bed, try a small protein snack like cottage cheese instead of carb-heavy options.',
-        language: 'en'
-    },
-    {
-        category: 'evening',
-        title: 'Tomorrow Planning',
-        description: 'Check your remaining grams and plan tomorrow\'s meals before going to bed.',
-        language: 'en'
-    },
 
     // Social tips
     {
@@ -266,12 +170,6 @@ export const tips: Tip[] = [
         title: 'Sociale arrangementer',
         description: 'Planlæg dit gram-budget før sociale arrangementer. Det giver dig frihed til at nyde måltidet uden stress.',
         language: 'da'
-    },
-    {
-        category: 'social',
-        title: 'Social Events',
-        description: 'Plan your gram budget before social events. This gives you the freedom to enjoy the meal without stress.',
-        language: 'en'
     },
 
     // Progress tips
@@ -281,18 +179,6 @@ export const tips: Tip[] = [
         description: 'Fokuser på dine langsigtede fremskridt. Små daglige sejre fører til store resultater over tid.',
         language: 'da'
     },
-    {
-        category: 'progress',
-        title: 'Progress Over Time',
-        description: 'Focus on your long-term progress. Small daily wins lead to big results over time.',
-        language: 'en'
-    },
-    {
-        category: 'progress',
-        title: 'Daily Goal Focus',
-        description: 'Compare your morning weight only to today\'s goal weight, not future targets. This keeps you focused on immediate, achievable progress.',
-        language: 'en'
-    },
 
     // Adjustment tips
     {
@@ -300,12 +186,6 @@ export const tips: Tip[] = [
         title: 'Juster dit mål',
         description: 'Det er okay at justere dit mål undervejs. Lyt til din krop og tilpas din plan efter behov.',
         language: 'da'
-    },
-    {
-        category: 'adjustment',
-        title: 'Adjust Your Goal',
-        description: 'It\'s okay to adjust your goal along the way. Listen to your body and adapt your plan as needed.',
-        language: 'en'
     },
 
     // Motivation tips
@@ -315,36 +195,6 @@ export const tips: Tip[] = [
         description: 'Husk at fejre dine små sejre undervejs. Hver gram tæller i den rigtige retning!',
         language: 'da'
     },
-    {
-        category: 'motivation',
-        title: 'Celebrate Victories',
-        description: 'Remember to celebrate your small victories along the way. Every gram counts in the right direction!',
-        language: 'en'
-    },
-    {
-        category: 'motivation',
-        title: 'Data-Driven Decisions',
-        description: 'Let your weight trend guide your choices rather than emotional eating patterns. Your morning weight provides clear direction for the day.',
-        language: 'en'
-    },
-    {
-        category: 'motivation',
-        title: 'Progress Perspective',
-        description: 'Think of your gram allowance as a daily budget - staying within it naturally leads to your goal weight.',
-        language: 'en'
-    },
-    {
-        category: 'motivation',
-        title: 'Milestone Celebrations',
-        description: 'Celebrate every 5 pounds lost with non-food rewards like new workout clothes or a massage.',
-        language: 'en'
-    },
-    {
-        category: 'motivation',
-        title: 'Trend Tracking',
-        description: 'Focus on your 7-day weight average rather than daily fluctuations. This provides a clearer picture of your progress.',
-        language: 'en'
-    }
 ];
 
 // Helper function to get tips by language and category

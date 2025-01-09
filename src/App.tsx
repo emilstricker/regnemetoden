@@ -49,12 +49,16 @@ function App() {
 
     const unsubscribeGoal = onWeightLossGoalChange(user.uid, (goal) => {
       setWeightLossGoal(goal);
-      setIsLoading(false);
+      if (user) {
+        setIsLoading(false);
+      }
     });
 
     const unsubscribeEntries = onDayEntriesChange(user.uid, (entries) => {
       setDayEntries(entries);
-      setIsLoading(false);
+      if (user) {
+        setIsLoading(false);
+      }
     });
 
     return () => {
