@@ -221,7 +221,7 @@ function App() {
   // Show setup form if no goal exists
   if (!weightLossGoal) {
     return (
-      <div className="min-h-screen bg-[url('/src/styles/background.jpg')] bg-cover bg-center bg-fixed font-sans antialiased">
+      <div className="min-h-screen bg-[radial-gradient(circle_at_top,#F6DFAE,#EDC6A7,#B96B75)] bg-cover bg-center bg-fixed font-sans antialiased">
         <Header 
           onResetPlan={handleResetPlan} 
           onSignOut={handleSignOut} 
@@ -235,7 +235,7 @@ function App() {
 
   // Show dashboard
   return (
-    <div className="min-h-screen bg-[url('/src/styles/background.jpg')] bg-cover bg-center bg-fixed font-sans antialiased">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,#F6DFAE,#EDC6A7,#B96B75)] bg-cover bg-center bg-fixed font-sans antialiased">
       <Header 
         onResetPlan={handleResetPlan} 
         onSignOut={handleSignOut} 

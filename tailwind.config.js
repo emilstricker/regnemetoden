@@ -84,7 +84,12 @@ module.exports = {
   		animation: {
   			'accordion-down': 'accordion-down 0.2s ease-out',
   			'accordion-up': 'accordion-up 0.2s ease-out'
-  		}
+  		},
+  		gradientColorStops: {
+  			'radial-gradient': '#F6DFAE',
+  			'radial-gradient-2': '#EDC6A7',
+  			'radial-gradient-3': '#B96B75',
+  		},
   	}
   },
   plugins: [require("tailwindcss-animate")],
