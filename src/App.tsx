@@ -175,7 +175,7 @@ function App() {
 
   if (isAuthLoading || isLoading) {
     return (
-      <div className="min-h-screen bg-[url('/src/styles/background.jpg')] bg-cover bg-center bg-fixed font-sans antialiased">
+      <div className="min-h-screen bg-[url('/bgtiny.jpeg')] bg-cover bg-center bg-fixed backdrop-blur-sm w-full h-full font-sans antialiased bg-orange-200">
         <div className="min-h-screen flex items-center justify-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
         </div>
@@ -185,7 +185,7 @@ function App() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-[url('/src/styles/background.jpg')] bg-cover bg-center bg-fixed font-sans antialiased">
+      <div className="min-h-screen bg-[url('/bgtiny.jpeg')] bg-cover bg-center bg-fixed backdrop-blur-sm w-full h-full font-sans antialiased bg-orange-200">
         <div className="min-h-screen flex items-center justify-center p-4">
           <Auth />
         </div>
@@ -195,7 +195,7 @@ function App() {
 
   if (!weightLossGoal) {
     return (
-      <div className="min-h-screen bg-[url('/src/styles/background.jpg')] bg-cover bg-center bg-fixed font-sans antialiased">
+      <div className="min-h-screen bg-[url('/bgtiny.jpeg')] bg-cover bg-center bg-fixed backdrop-blur-sm w-full h-full font-sans antialiased bg-orange-200">
         <div className="min-h-screen flex items-center justify-center p-4">
           <SetupForm onSubmit={handleGoalUpdate} />
         </div>
@@ -204,7 +204,7 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[url('/src/styles/background.jpg')] bg-cover bg-center bg-fixed font-sans antialiased">
+    <div className="min-h-screen bg-[url('/bgtiny.jpeg')] bg-cover bg-center bg-fixed backdrop-blur-sm w-full h-full font-sans antialiased bg-orange-200">
       <Header onResetPlan={handleResetPlan} />
       <main className="container mx-auto p-4 space-y-4">
         {isDevelopment && isDevHeaderExpanded && (

@@ -91,7 +91,7 @@ export function DailyTracking({
 
   // Calculate daily target weight and food allowance
   const daysSinceStart = Math.floor(
-    (currentDate.getTime() - new Date(userData.startDate).getTime()) / (1000 * 60 * 60 * 24)
+    (currentDate.getTime() - new Date(userData.startDate).getTime()) / (1000 * 60 * 60 * 24) + 1
   );
   const totalWeightLoss = userData.startWeight - userData.targetWeight;
   const dailyWeightLoss = totalWeightLoss / userData.numberOfDays;
